@@ -90,8 +90,8 @@ main_frame = ctk.CTkFrame(
     border_width=0.5,
     border_color='#00bfc2',
 )
-main_frame.pack(anchor = 'center', padx = (10,10), pady=(30,30), ipadx = 50, ipady = 20)
-main_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),  minsize=150,)
+main_frame.pack(anchor = 'center', padx = (10,10), pady=(30,30), ipady = 20)
+# main_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),  minsize=100,)
 main_frame.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), minsize=50,)
 main_frame.grid_columnconfigure((0,5,8), pad=30)
 # main_frame.grid_rowconfigure((0,2,4,6,8,10), pad=30)
@@ -113,7 +113,7 @@ twelve_one_btn.grid(column=4, row=0, pady=10)
 lunch_interval_btn.grid(column=5, row=0, pady=10)
 two_thirty_four_btn.grid(column=6, row=0, pady=10)
 four_five_thirty_btn.grid(column=7, row=0, pady=10)
-six_nine_btn.grid(column=8, row=0, pady=10)
+six_nine_btn.grid(column=8, row=0, pady=10, padx=(0,20))
 
 # define weekdays buttons
 monday_btn = ctk.CTkButton(master=main_frame, width=120, height=80, state='disabled', text="Monday", corner_radius=0, border_color='#00bfc2', border_width=0.5)
@@ -124,12 +124,12 @@ friday_btn = ctk.CTkButton(master=main_frame, width=120, height=80, state='disab
 # lunch time
 lunch_btn = ctk.CTkButton(master=main_frame, width=100, height=440, state='disabled', text="Lunch", corner_radius=0, border_color='#00bfc2', border_width=0.5)
 
-monday_btn.grid(column=0, row = 1, rowspan=2, pady=(0,10))
-tuesday_btn.grid(column=0, row=3, rowspan=2, pady=(0,10))
-wednesday_btn.grid(column=0, row=5, rowspan=2, pady=(0,10))
-thursday_btn.grid(column=0, row=7, rowspan=2, pady=(0,10))
-friday_btn.grid(column=0, row=9, rowspan=2, pady=(0,10))
-lunch_btn.grid(column=5, row=1, rowspan=10, pady=(0,10))
+monday_btn.grid(column=0, row = 1, rowspan=2, pady=(0,10), padx=(20,0))
+tuesday_btn.grid(column=0, row=3, rowspan=2, pady=(0,10), padx=(20,0))
+wednesday_btn.grid(column=0, row=5, rowspan=2, pady=(0,10), padx=(20,0))
+thursday_btn.grid(column=0, row=7, rowspan=2, pady=(0,10), padx=(20,0))
+friday_btn.grid(column=0, row=9, rowspan=2, padx=(20,0))
+lunch_btn.grid(column=5, row=1, rowspan=10, )
 
 '''Classes Buttons (Slots A, B, C, etc...)'''
 
@@ -236,17 +236,17 @@ Q_thu_btn.grid(column=6, row=7,)
 P_thu_btn.grid(column=7, row=7,)
 FN4_btn.grid(column=1, row=8, columnspan=3, pady=(0,10))
 AN4_btn.grid(column=6, row=8, columnspan=2, pady=(0,10))
-six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10))
+six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10), padx=(0,20))
 
 #place friday slots on grid
 E_fri_btn.grid(column=1, row=9,)
 F_fri_btn.grid(column=2, row=9,)
 D_fri_btn.grid(column=3, row=9)
-G_fri_btn.grid(column=4, row=9, rowspan=2, pady=(0,10))
+G_fri_btn.grid(column=4, row=9, rowspan=2, )
 S_fri_btn.grid(column=6, row=9,)
 R_fri_btn.grid(column=7, row=9,)
-FN5_btn.grid(column=1, row=10, columnspan=3, pady=(0,10))
-AN5_btn.grid(column=6, row=10, columnspan=2, pady=(0,10))
+FN5_btn.grid(column=1, row=10, columnspan=3, )
+AN5_btn.grid(column=6, row=10, columnspan=2, )
 
 #nigga was here
 
