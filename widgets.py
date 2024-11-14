@@ -218,7 +218,7 @@ class Timetable(ctk.CTkFrame):
     def write_commands(self):
         for i in range(len(self.total_slots)):
             for j in range(len(self.total_slots[i])):
-                self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot(self.total_slots[ni][nj], self.total_slots)
+                self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot(self.total_slots[ni][nj], self.total_slots[ni])
 
 class Tabs(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
@@ -304,7 +304,7 @@ class App(ctk.CTk):
         self.my_tabs.pack(padx=(10,10), pady=(10,10), anchor='center')
 
 
-app = App()
+# app = App()
 # print(App.current_time)
 
-app.mainloop()
+# app.mainloop()

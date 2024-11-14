@@ -1,5 +1,16 @@
 import customtkinter as ctk
+import CTkMessagebox
 import os
+
+def show_warning(msg : str):
+    warning_window = CTkMessagebox.CTkMessagebox(
+                        title="Warning!",
+                        message=msg,
+                        icon="warning",
+                        option_1="Retry",
+                        sound=True,
+                        cancel_button='cross',
+                    )
 
 def open_calendar_file():
     pass
@@ -16,28 +27,67 @@ def limit_entry_size(limit : int, item : ctk.StringVar, *args):
     if (len(value) > limit):
         item.set(value[:limit])
 
-def dialog_ok_clicked(placeholders : tuple[ctk.StringVar], master : ctk.CTkToplevel):
+def dialog_ok_clicked(placeholders : tuple[ctk.StringVar], master : ctk.CTkToplevel, slot : str, buttons : tuple[ctk.CTkButton]):
     print("called ok")
-    pass
+    initial_text = buttons[0].cget("text")
+    output_text=""
+    for i in range(3):
+        input_text = placeholders[i].get()
+        match i:
+            case 0:
+                if (input_text == "Max 12 char"):
+                    show_warning("Please Enter Course Details Properly")
+                    output_text=initial_text
+                    break
+                else:
+                    flag0 = 1
+                    output_text += input_text
+                    output_text += '\n'
+            case 1: 
+                if (input_text == "Max 6 char"):
+                    show_warning("Please Enter Course Details Properly")
+                    output_text=initial_text
+                    break
+                else:
+                    flag1 = 1
+            case 2:
+                if (input_text == "Max 6 char"):
+                    show_warning("Please Enter Course Details Properly")
+                    output_text=initial_text
+                    break
+                else:
+                    flag2 = 1
+                    output_text += input_text
+                    output_text += f'\t({slot})'
+                    if (flag0 and flag1 and flag2):
+                        master.destroy()
+    print(output_text)
+    for btn in buttons:
+        btn.configure(text=output_text)
 
-def dialog_cancel_clicked():
+def dialog_cancel_clicked(master : ctk.CTkToplevel):
     print("called cancel")
-    pass
+    master.destroy()
 
 
-def modify_slot(btn : ctk.CTkButton, all_slots):
+def modify_slot(btn : ctk.CTkButton, all_btns_in_slot):
     """
     Called on Slot/Button Press.
     \nCreates a TopLevel and takes user input for Course Title, Code and Venue. Appropriately changes button label.
     """
-    print(btn)
+    # print(btn)
+    if (len(all_btns_in_slot) == 5):
+        all_btns_in_slot = tuple(btn)
+    print(all_btns_in_slot)
+
     dialog = ctk.CTkToplevel(fg_color = '#121212')
     dialog.title("Edit Slot Details")
     dialog.resizable(False, False)
+
     # set transparency to 0 until window is completely rendered
     dialog.attributes("-alpha", 0)
     dialog.update_idletasks()
-    # print('\n',btn)
+
     btn_label_text = str(btn.cget("text"))
     # print(btn_label_text)
     course_title_placeholder = ctk.StringVar(master = dialog, value="Max 12 char")
@@ -49,7 +99,7 @@ def modify_slot(btn : ctk.CTkButton, all_slots):
     
     entry_placeholders = (course_title_placeholder, course_code_placeholder, course_venue_placeholder)
 
-    if (len(btn_label_text) == 1 or len(btn_label_text) == 3):
+    if (len(btn_label_text) == 1 or len(btn_label_text) == 3 or btn_label_text == "AN3/US"):
         slot = btn_label_text
     else:
         slot = btn_label_text[-2]
@@ -81,8 +131,8 @@ def modify_slot(btn : ctk.CTkButton, all_slots):
     course_code_entry = ctk.CTkEntry(master = dialog, width=100 , textvariable=course_code_placeholder)
     course_venue_entry = ctk.CTkEntry(master = dialog, width=100, textvariable=course_venue_placeholder)
     
-    ok_button = ctk.CTkButton(master=dialog, width=120, text="OK", command = lambda master=dialog, item = entry_placeholders : dialog_ok_clicked(item, master))
-    cancel_button = ctk.CTkButton(master=dialog, width=120, text="Cancel", command = dialog_cancel_clicked)
+    ok_button = ctk.CTkButton(master=dialog, width=120, text="OK", command = lambda item = entry_placeholders, master=dialog, s=slot, btns=all_btns_in_slot: dialog_ok_clicked(item, master, s, btns))
+    cancel_button = ctk.CTkButton(master=dialog, width=120, text="Cancel", command = lambda master=dialog: dialog_cancel_clicked(master))
 
     header_label.grid(row=0, column=0, columnspan=2, sticky='nw', padx=(10,10), pady=(20,0))
 
