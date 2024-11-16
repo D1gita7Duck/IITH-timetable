@@ -215,10 +215,13 @@ class Timetable(ctk.CTkFrame):
                     Timetable.AN_slot,
                     )
         
-    def write_commands(self):
+    def write_btn_commands(self):
         for i in range(len(self.total_slots)):
             for j in range(len(self.total_slots[i])):
                 self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot(self.total_slots[ni][nj], self.total_slots[ni])
+    
+    def change_btn_text(self):
+        commands.modify_button_text_from_db(self.total_slots)
 
 class Tabs(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
@@ -242,7 +245,8 @@ class Tabs(ctk.CTkTabview):
         self.timetable_frame.draw_fri_slot_btns()
 
         self.timetable_frame.create_total_slots_tuple()
-        self.timetable_frame.write_commands()
+        self.timetable_frame.write_btn_commands()
+        self.timetable_frame.change_btn_text()
 
 class MenuBar():
     def __init__(self, master, **kwargs):

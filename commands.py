@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import CTkMessagebox
 import os
+import db
 
 def show_warning(msg : str):
     warning_window = CTkMessagebox.CTkMessagebox(
@@ -11,6 +12,20 @@ def show_warning(msg : str):
                         sound=True,
                         cancel_button='cross',
                     )
+
+def modify_button_text_from_db(all_slots : tuple[tuple[ctk.CTkButton]]):
+    slot_text = db.get_slot_text()
+    for i in range(11):
+        for j in range(len(all_slots[i])):
+            all_slots[i][j].configure(text = slot_text[i][1])
+    
+    FN_btns = all_slots[11]
+    for i in range(len(FN_btns)):
+        FN_btns[i].configure(text = slot_text[11+i][1])
+
+    AN_btns = all_slots[12]
+    for i in range(len(AN_btns)):
+        AN_btns[i].configure(text = slot_text[16+i][1])
 
 def open_calendar_file():
     pass
@@ -62,6 +77,7 @@ def dialog_ok_clicked(placeholders : tuple[ctk.StringVar], master : ctk.CTkTople
                     if (flag0 and flag1 and flag2):
                         master.destroy()
     print(output_text)
+    db.write_button_text(slot, output_text)
     for btn in buttons:
         btn.configure(text=output_text)
 
@@ -77,7 +93,7 @@ def modify_slot(btn : ctk.CTkButton, all_btns_in_slot):
     """
     # print(btn)
     if (len(all_btns_in_slot) == 5):
-        all_btns_in_slot = tuple(btn)
+        all_btns_in_slot = btn,  # weird bug fix
     print(all_btns_in_slot)
 
     dialog = ctk.CTkToplevel(fg_color = '#121212')
