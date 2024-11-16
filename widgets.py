@@ -21,6 +21,7 @@ class Timetable(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), minsize=50,)
+        self.columnconfigure((0,1,2,3,4,5,6,7,8), minsize=50)
         # add widgets onto the frame, for example:
     
     def draw_day_btns(self):
@@ -57,6 +58,7 @@ class Timetable(ctk.CTkFrame):
         self.two_thirty_four_btn.grid(column=6, row=0, pady=(20,10))
         self.four_five_thirty_btn.grid(column=7, row=0, pady=(20,10))
         self.six_nine_btn.grid(column=8, row=0, pady=(20,10), padx=(0,20))
+        self.six_nine_btn.grid_remove()
     
     def draw_mon_slot_btns(self):
         # monday slots
@@ -161,6 +163,7 @@ class Timetable(ctk.CTkFrame):
         self.FN4_btn.grid(column=1, row=8, columnspan=3, pady=(0,10))
         self.AN4_btn.grid(column=6, row=8, columnspan=2, pady=(0,10))
         self.six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10), padx=(0,20))
+        self.six_nine_thu_btn.grid_remove()
 
         Timetable.A_slot += (self.A_thu_btn,)
         Timetable.B_slot += (self.B_thu_btn,)
@@ -221,7 +224,19 @@ class Timetable(ctk.CTkFrame):
                 self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot(self.total_slots[ni][nj], self.total_slots[ni])
     
     def change_btn_text(self):
+        """
+        Takes text from sql db and changes btn text appropriately.
+        """
         commands.modify_button_text_from_db(self.total_slots)
+
+    def toggle_six_nine_btn(self, value, *args):
+        print(value, args)
+        if (value.get() == 0):
+            self.six_nine_btn.grid_remove()
+            self.six_nine_thu_btn.grid_remove()
+        else:
+            self.six_nine_btn.grid()
+            self.six_nine_thu_btn.grid()
 
 class Tabs(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
@@ -260,15 +275,26 @@ class MenuBar():
 
     def adjust_transparency(self, value : float):
         self.master.attributes("-alpha", value)
-
-    def make_dropdowns(self):
-        # file cascade
+    
+    def make_file_dropdown(self):
         self.file_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.file_button)
         self.file_dropdown.add_option(option = "Open", command = commands.open_calendar_file)
         self.file_dropdown.add_separator()
         self.file_dropdown.add_option(option = "Exit", )
     
-        # options cascade
+    def make_edit_dropdown(self):
+        self.edit_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.edit_button)
+        self.check_var = ctk.IntVar(value=0)
+        self.six_nine_check = ctk.CTkCheckBox(
+                                    master=self.edit_dropdown,
+                                    text = "Six to Nine Button",
+                                    hover=True,
+                                    variable=self.check_var,
+                                    # command = self.toggle_btns_grid()
+                                )
+        self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')
+    
+    def make_options_dropdown(self):
         self.options_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.options_button)
         self.options_dropdown.add_option(option="Adjust Transparency", state = 'disabled')
 
@@ -284,11 +310,19 @@ class MenuBar():
                                     command=self.adjust_transparency,
                                     width=100,
                                 )
+        self.transparency_slider.set(0.92)
         self.transparency_slider.pack(pady=(0,10), padx=(10,10), anchor='center', fill='x')
-
+    
+    def make_help_dropdown(self):        
         self.help_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self.help_button)
         self.help_dropdown.add_option(option = "About", command = commands.open_source_code)
-        
+
+    def make_all_dropdowns(self):
+        self.make_file_dropdown()
+        self.make_edit_dropdown()
+        self.make_options_dropdown()
+        self.make_help_dropdown()
+    
 
 class App(ctk.CTk):
     current_time=time.localtime()
@@ -301,7 +335,8 @@ class App(ctk.CTk):
         self.attributes("-alpha", 0.92)
 
         self.menubar = MenuBar(master=self)
-        self.menubar.make_dropdowns()
+        self.menubar.make_all_dropdowns()
+        self.menubar.six_nine_check._command = lambda value=self.menubar.six_nine_check._variable: self.my_tabs.timetable_frame.toggle_six_nine_btn(value)
 
         self.my_tabs = Tabs(master=self, fg_color='gray')
         # self.my_tabs.grid(row=0, column=0, padx=(10,10), pady=(10,10), sticky='nsew')
