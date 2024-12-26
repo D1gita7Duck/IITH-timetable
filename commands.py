@@ -2,6 +2,7 @@ import customtkinter as ctk
 import CTkMessagebox
 import os
 import db
+import myentry
 
 def show_warning(msg : str):
     warning_window = CTkMessagebox.CTkMessagebox(
@@ -94,7 +95,7 @@ def modify_slot(btn : ctk.CTkButton, all_btns_in_slot):
     # print(btn)
     if (len(all_btns_in_slot) == 5):
         all_btns_in_slot = btn,  # weird bug fix
-    print(all_btns_in_slot)
+    # print(all_btns_in_slot)
 
     dialog = ctk.CTkToplevel(fg_color = '#121212')
     dialog.title("Edit Slot Details")
@@ -167,3 +168,53 @@ def modify_slot(btn : ctk.CTkButton, all_btns_in_slot):
     dialog.attributes("-topmost", True)
     dialog.focus_set()
 
+def edit_courses():
+    edit_course_win = ctk.CTkToplevel(fg_color = '#121212')
+    
+    edit_course_win.title("Edit Course Details")
+    edit_course_win.resizable(False, False)
+    # set transparency to 0 until window is completely rendered
+    edit_course_win.attributes("-alpha", 0)
+    edit_course_win.update_idletasks()
+
+    edit_course_win_width=700
+    edit_course_win_height=600
+    screen_width=2200
+    screen_height=1200
+    x_coordinate=int((screen_width/2)-(edit_course_win_width/2))
+    y_coordinate = int((screen_height/2) - (edit_course_win_height/2))
+    edit_course_win.geometry("{}x{}+{}+{}".format(edit_course_win_width, edit_course_win_height, x_coordinate, y_coordinate))
+
+    entry_frame = myentry.CourseEntry(master = edit_course_win, title_text="Editing Courses")
+    entry_frame.pack(padx=(10,10), pady=(20,10))
+
+    # set transparency to 1
+    edit_course_win.attributes("-alpha", 1)
+    edit_course_win.attributes("-topmost", True)
+    edit_course_win.focus_set()
+    
+
+def edit_segments():
+    edit_segment_win = ctk.CTkToplevel(fg_color = '#121212')
+    
+    edit_segment_win.title("Edit Segment Details")
+    edit_segment_win.resizable(False, False)
+    # set transparency to 0 until window is completely rendered
+    edit_segment_win.attributes("-alpha", 0)
+    edit_segment_win.update_idletasks()
+
+    edit_segment_win_width=700
+    edit_segment_win_height=500
+    screen_width=2200
+    screen_height=1200
+    x_coordinate=int((screen_width/2)-(edit_segment_win_width/2))
+    y_coordinate = int((screen_height/2) - (edit_segment_win_height/2))
+    edit_segment_win.geometry("{}x{}+{}+{}".format(edit_segment_win_width, edit_segment_win_height, x_coordinate, y_coordinate))
+
+    entry_frame = myentry.SegmentEntry(master=edit_segment_win)
+    entry_frame.pack(padx=(10,10), pady=(20,10))
+
+    # set transparency to 1
+    edit_segment_win.attributes("-alpha", 1)
+    edit_segment_win.attributes("-topmost", True)
+    edit_segment_win.focus_set()

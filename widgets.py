@@ -57,8 +57,8 @@ class Timetable(ctk.CTkFrame):
         self.lunch_interval_btn.grid(column=5, row=0, pady=(20,10))
         self.two_thirty_four_btn.grid(column=6, row=0, pady=(20,10))
         self.four_five_thirty_btn.grid(column=7, row=0, pady=(20,10))
-        self.six_nine_btn.grid(column=8, row=0, pady=(20,10), padx=(0,20))
-        self.six_nine_btn.grid_remove()
+        # self.six_nine_btn.grid(column=8, row=0, pady=(20,10), padx=(0,20))
+        # self.six_nine_btn.grid_remove()
     
     def draw_mon_slot_btns(self):
         # monday slots
@@ -162,8 +162,8 @@ class Timetable(ctk.CTkFrame):
         self.P_thu_btn.grid(column=7, row=7,)
         self.FN4_btn.grid(column=1, row=8, columnspan=3, pady=(0,10))
         self.AN4_btn.grid(column=6, row=8, columnspan=2, pady=(0,10))
-        self.six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10), padx=(0,20))
-        self.six_nine_thu_btn.grid_remove()
+        # self.six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10), padx=(0,20))
+        # self.six_nine_thu_btn.grid_remove()
 
         Timetable.A_slot += (self.A_thu_btn,)
         Timetable.B_slot += (self.B_thu_btn,)
@@ -235,8 +235,8 @@ class Timetable(ctk.CTkFrame):
             self.six_nine_btn.grid_remove()
             self.six_nine_thu_btn.grid_remove()
         else:
-            self.six_nine_btn.grid()
-            self.six_nine_thu_btn.grid()
+            self.six_nine_btn.grid(column=8, row=0, pady=(20,10), padx=(0,20))
+            self.six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10), padx=(0,20))
 
 class Tabs(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
@@ -277,13 +277,13 @@ class MenuBar():
         self.master.attributes("-alpha", value)
     
     def make_file_dropdown(self):
-        self.file_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.file_button)
+        self.file_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.file_button, separator_color='white')
         self.file_dropdown.add_option(option = "Open", command = commands.open_calendar_file)
         self.file_dropdown.add_separator()
         self.file_dropdown.add_option(option = "Exit", )
     
     def make_edit_dropdown(self):
-        self.edit_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.edit_button)
+        self.edit_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.edit_button, separator_color='white')
         self.check_var = ctk.IntVar(value=0)
         self.six_nine_check = ctk.CTkCheckBox(
                                     master=self.edit_dropdown,
@@ -292,6 +292,9 @@ class MenuBar():
                                     variable=self.check_var,
                                     # command = self.toggle_btns_grid()
                                 )
+        self.edit_dropdown.add_option(option = "Edit Segments", command=commands.edit_segments)
+        self.edit_dropdown.add_option(option = "Edit Courses", command=commands.edit_courses)
+        self.edit_dropdown.add_separator()
         self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')
     
     def make_options_dropdown(self):
@@ -323,6 +326,14 @@ class MenuBar():
         self.make_options_dropdown()
         self.make_help_dropdown()
     
+class DashBoard(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9), minsize=50)
+        
+        label = ctk.CTkLabel(master=self, text="Dashboard")
+        label.grid(row=0, column=0, columnspan=10, padx=(5,5), pady=(5,5))
+
 
 class App(ctk.CTk):
     current_time=time.localtime()
@@ -337,6 +348,9 @@ class App(ctk.CTk):
         self.menubar = MenuBar(master=self)
         self.menubar.make_all_dropdowns()
         self.menubar.six_nine_check._command = lambda value=self.menubar.six_nine_check._variable: self.my_tabs.timetable_frame.toggle_six_nine_btn(value)
+
+        self.dash = DashBoard(master = self, width=1000, height=400, border_width=0.5, fg_color='#23272D', border_color='#00bfc2')
+        self.dash.pack(padx=(20,20), pady=(10,10), side='left', anchor='nw')
 
         self.my_tabs = Tabs(master=self, fg_color='gray')
         # self.my_tabs.grid(row=0, column=0, padx=(10,10), pady=(10,10), sticky='nsew')
