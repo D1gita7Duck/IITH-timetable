@@ -6,6 +6,17 @@ from CTkDateEntry.dateentry import DateTextEntry
 course_add_img = ctk.CTkImage(Image.open("icons\\course_add.png"), size = (40,40))
 course_delete_img = ctk.CTkImage(Image.open("icons\\course_delete.png"), size = (40,40))
 
+def show_warning(msg : str):
+    warning_window = CTkMessagebox.CTkMessagebox(
+                        title="Warning!",
+                        message=msg,
+                        icon="warning",
+                        option_1="Retry",
+                        sound=True,
+                        cancel_button='cross',
+                    )
+
+
 class CourseEntry(ctk.CTkFrame):
     def __init__(self,
                  master,
@@ -286,15 +297,6 @@ class CourseEntry(ctk.CTkFrame):
         if self._push_entries is not None:
             self._push_entries(self._placeholders)
 
-    def show_warning(self, msg : str):
-        warning_window = CTkMessagebox.CTkMessagebox(
-                            title="Warning!",
-                            message=msg,
-                            icon="warning",
-                            option_1="Retry",
-                            sound=True,
-                            cancel_button='cross',
-                        )
 
 
 class SegmentEntry(ctk.CTkFrame):
@@ -309,11 +311,17 @@ class SegmentEntry(ctk.CTkFrame):
                  border_color = None,
                  background_corner_colors = None,
                  overwrite_preferred_drawing_method = None,
+
                  title_text = "Editing Segments",
                  title_justify = "center",
+                 
                  date_format = 0,
                  delimiter = '/',
-                 invalid_date_cmd = None,
+                 invalid_date_cmd = show_warning,
+                 
+                 clear_entries = None,
+                 push_entries = None,
+
                  **kwargs):
         super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, background_corner_colors, overwrite_preferred_drawing_method, **kwargs)
         self.grid_columnconfigure((0,1,2,3,4,5,6,), minsize=50)
@@ -324,24 +332,26 @@ class SegmentEntry(ctk.CTkFrame):
         self._date_format = date_format
         self._delimiter = delimiter
         self._invalid_date_cmd = invalid_date_cmd
+        self._clear_entries = clear_entries
+        self._push_entries = push_entries
 
         self.title_label = ctk.CTkLabel(master=self, height=40 ,text=self._title_text, justify = self._title_justify, anchor = "center", font=("Helvetica", 25))
         self.title_label.grid(row=0, column = 0, columnspan = 9, padx=(10,10),pady=(20,10), sticky='nsew')
 
-        segment_label = ctk.CTkLabel(master=self, text="Segment  :", font=("Helvetica", 18))
-        segment_label.grid(row=1, column=2, columnspan=2, padx=(10,0), pady=(10,10))
-        option_menu = ctk.CTkOptionMenu(master = self, width = 75, values=self._segment_values)
-        option_menu.grid(row=1, column=4, padx=(10,10), pady=(10,10))
+        self.segment_label = ctk.CTkLabel(master=self, text="Segment  :", font=("Helvetica", 18))
+        self.segment_label.grid(row=1, column=2, columnspan=2, padx=(10,0), pady=(10,10))
+        self.option_menu = ctk.CTkOptionMenu(master = self, width = 75, values=self._segment_values)
+        self.option_menu.grid(row=1, column=4, padx=(10,10), pady=(10,10))
 
-        start_date_label = ctk.CTkLabel(master=self, text="Start Date")
-        end_date_label = ctk.CTkLabel(master=self, text="End Date")
-        start_date_label.grid(row=2, column=1, padx=(10,10), pady=(0,10))
-        end_date_label.grid(row=2, column=5, padx=(10,10), pady=(0,10))
+        self.start_date_label = ctk.CTkLabel(master=self, text="Start Date")
+        self.end_date_label = ctk.CTkLabel(master=self, text="End Date")
+        self.start_date_label.grid(row=2, column=1, padx=(10,10), pady=(0,10))
+        self.end_date_label.grid(row=2, column=5, padx=(10,10), pady=(0,10))
 
-        start_dateentry = DateTextEntry(master=self, date_format=self._date_format, width=100, delimiter=self._delimiter, invalid_date_cmd=self._invalid_date_cmd)
-        end_dateentry =   DateTextEntry(master=self, date_format=self._date_format, width=100, delimiter=self._delimiter, invalid_date_cmd=self._invalid_date_cmd)
-        start_dateentry.grid(row=3, column=1, padx=(10,10), pady=(0,20))
-        end_dateentry.grid(row=3, column=5, padx=(10,10), pady=(0,20))
+        self.start_dateentry = DateTextEntry(master=self, date_format=self._date_format, width=100, delimiter=self._delimiter, invalid_date_cmd=self._invalid_date_cmd)
+        self.end_dateentry =   DateTextEntry(master=self, date_format=self._date_format, width=100, delimiter=self._delimiter, invalid_date_cmd=self._invalid_date_cmd)
+        self.start_dateentry.grid(row=3, column=1, padx=(10,10), pady=(0,20))
+        self.end_dateentry.grid(row=3, column=5, padx=(10,10), pady=(0,20))
 
         self.clear_btn = ctk.CTkButton(master=self, width = 200, height=40, text="Clear", anchor="center", command=self.clear_entries)
         self.clear_btn.grid(row=4, column = 0, columnspan =4, sticky='nw', padx=(10,20), pady=(0,10))
@@ -353,8 +363,18 @@ class SegmentEntry(ctk.CTkFrame):
         self.close_self_btn.grid(row=5, column = 0, columnspan = 7, padx=(10,10),pady=(10,20), sticky='nsew')
     
     def clear_entries(self):
-        pass
+        self.start_dateentry.reset()
+        self.end_dateentry.reset()
+        self.option_menu.set('1')
+
+        if self._clear_entries is not None:
+            self._clear_entries()
 
     def commit_entries(self):
-        pass
+        self.clear_entries()
+        if self._push_entries is not None:
+            try:
+                self._push_entries(self.option_menu.get(), self.start_dateentry.get(), self.end_dateentry.get())
+            except ValueError as msg:
+                show_warning(msg)
         

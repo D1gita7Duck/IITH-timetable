@@ -203,8 +203,8 @@ def edit_segments():
     edit_segment_win.attributes("-alpha", 0)
     edit_segment_win.update_idletasks()
 
-    edit_segment_win_width=700
-    edit_segment_win_height=500
+    edit_segment_win_width=600
+    edit_segment_win_height=400
     screen_width=2200
     screen_height=1200
     x_coordinate=int((screen_width/2)-(edit_segment_win_width/2))
@@ -212,7 +212,7 @@ def edit_segments():
     edit_segment_win.geometry("{}x{}+{}+{}".format(edit_segment_win_width, edit_segment_win_height, x_coordinate, y_coordinate))
 
     entry_frame = myentry.SegmentEntry(master=edit_segment_win)
-    entry_frame.pack(padx=(10,10), pady=(20,10))
+    entry_frame.pack(padx=(10,10), pady=(30,30))
 
     # set transparency to 1
     edit_segment_win.attributes("-alpha", 1)
