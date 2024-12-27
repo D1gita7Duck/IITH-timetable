@@ -1,3 +1,6 @@
 [submodule "CTkDateEntry"]
 	path = CTkDateEntry
 	url = https://github.com/D1gita7Duck/CTkDateEntry
+[submodule "CTkDataVisualizingWidgets"]
+	path = CTkDataVisualizingWidgets
+	url = https://github.com/D1gita7Duck/CTkDataVisualizingWidgets.git
