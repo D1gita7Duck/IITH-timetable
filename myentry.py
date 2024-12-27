@@ -42,6 +42,9 @@ class CourseEntry(ctk.CTkFrame):
 
                  **kwargs
                  ):
+        """
+        Passing combobox_cmd overrides on_combobox_click functionalities
+        """
         super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, background_corner_colors, overwrite_preferred_drawing_method, **kwargs)
         self._title_text = title_text
         self._title_justify = title_justify
@@ -174,29 +177,29 @@ class CourseEntry(ctk.CTkFrame):
             match i:
                 case 0:
                     if input_text == "Course Title":
-                        self.show_warning("Enter Course Title")
+                        show_warning("Enter Course Title")
                         return 1
                 case 1:
                     if input_text == "Max 6 char":
-                        self.show_warning("Enter Course Code")
+                        show_warning("Enter Course Code")
                         return 1
                 case 2:
                     continue
                 case 3:
                     if input_text == "Max 1 char":
-                        self.show_warning("Enter Start Segment")
+                        show_warning("Enter Start Segment")
                         return 1
                 case 4:
                     if input_text == "Max 1 char":
-                        self.show_warning("Enter End Segment")
+                        show_warning("Enter End Segment")
                         return 1
                 case 5:
                     if input_text == "Max 12 char":
-                        self.show_warning("Enter Slot Text")
+                        show_warning("Enter Slot Text")
                         return 1
                 case 6:
                     if input_text == "Max 3 char":
-                        self.show_warning("Enter Course Slot")
+                        show_warning("Enter Course Slot")
                         return 1
                 case _:
                     return 0
@@ -206,6 +209,14 @@ class CourseEntry(ctk.CTkFrame):
         for i in range(7):
             self._placeholders[i].set(self._values_entries_dict[box_value][i])
         self._entry_var = box_value
+
+    def set_entries_to_given_values(self, box_value, values):
+        """
+        values is tuple of values in correct order for respective placeholders
+        """
+        self.combobox.set(box_value)
+        for i in range(7):
+            self._placeholders[i].set(values[i])
 
     def reset_combobox(self):
         self._combobox_values = ["Enter a Value"]
@@ -218,6 +229,10 @@ class CourseEntry(ctk.CTkFrame):
 
     def on_combobox_click(self, box_value):
         print(box_value)
+        if self._combobox_command is not None:
+            self._combobox_command(box_value)
+            return
+        
         if self.check_entries():
             self.combobox.set(self._entry_var)
             return
@@ -225,9 +240,6 @@ class CourseEntry(ctk.CTkFrame):
             return
 
         self.set_entries_to(box_value)
-
-        if self._combobox_command is not None:
-            self._combobox_command()
         
     def on_add_click(self):
         if self.check_entries():
@@ -295,7 +307,7 @@ class CourseEntry(ctk.CTkFrame):
         # print(self._values_entries_dict)
 
         if self._push_entries is not None:
-            self._push_entries(self._placeholders)
+            self._push_entries(key, value)
 
 
 
@@ -312,6 +324,8 @@ class SegmentEntry(ctk.CTkFrame):
                  background_corner_colors = None,
                  overwrite_preferred_drawing_method = None,
 
+                 option_menu_cmd = None,
+
                  title_text = "Editing Segments",
                  title_justify = "center",
                  
@@ -326,6 +340,7 @@ class SegmentEntry(ctk.CTkFrame):
         super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, background_corner_colors, overwrite_preferred_drawing_method, **kwargs)
         self.grid_columnconfigure((0,1,2,3,4,5,6,), minsize=50)
 
+        self._option_menu_cmd = option_menu_cmd
         self._title_text = title_text
         self._title_justify = title_justify
         self._segment_values = ['1', '2', '3', '4', '5', '6']
@@ -340,7 +355,7 @@ class SegmentEntry(ctk.CTkFrame):
 
         self.segment_label = ctk.CTkLabel(master=self, text="Segment  :", font=("Helvetica", 18))
         self.segment_label.grid(row=1, column=2, columnspan=2, padx=(10,0), pady=(10,10))
-        self.option_menu = ctk.CTkOptionMenu(master = self, width = 75, values=self._segment_values)
+        self.option_menu = ctk.CTkOptionMenu(master = self, width = 75, values=self._segment_values, command=self._option_menu_cmd)
         self.option_menu.grid(row=1, column=4, padx=(10,10), pady=(10,10))
 
         self.start_date_label = ctk.CTkLabel(master=self, text="Start Date")
@@ -362,6 +377,8 @@ class SegmentEntry(ctk.CTkFrame):
         self.close_self_btn = ctk.CTkButton(master = self, width=200, height=40, text="Close", anchor="center", command = self.master.destroy)
         self.close_self_btn.grid(row=5, column = 0, columnspan = 7, padx=(10,10),pady=(10,20), sticky='nsew')
     
+        self.date_entries = (self.start_dateentry, self.end_dateentry)
+    
     def clear_entries(self):
         self.start_dateentry.reset()
         self.end_dateentry.reset()
@@ -371,10 +388,9 @@ class SegmentEntry(ctk.CTkFrame):
             self._clear_entries()
 
     def commit_entries(self):
-        self.clear_entries()
         if self._push_entries is not None:
             try:
-                self._push_entries(self.option_menu.get(), self.start_dateentry.get(), self.end_dateentry.get())
+                self._push_entries(self.option_menu.get(), self.start_dateentry.get_str(), self.end_dateentry.get_str())
             except ValueError as msg:
                 show_warning(msg)
         

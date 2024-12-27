@@ -169,6 +169,16 @@ def modify_slot(btn : ctk.CTkButton, all_btns_in_slot):
     dialog.focus_set()
 
 def edit_courses():
+
+    def write_values_from_db(c_title):
+        print("jere", c_title)
+        data = db.get_course_info(c_title)
+        print(data)
+        if len(data) == 0:
+            print("yerror, but how?")
+            return
+        entry_frame.set_entries_to_given_values(c_title, data[0])
+
     edit_course_win = ctk.CTkToplevel(fg_color = '#121212')
     
     edit_course_win.title("Edit Course Details")
@@ -185,7 +195,13 @@ def edit_courses():
     y_coordinate = int((screen_height/2) - (edit_course_win_height/2))
     edit_course_win.geometry("{}x{}+{}+{}".format(edit_course_win_width, edit_course_win_height, x_coordinate, y_coordinate))
 
-    entry_frame = myentry.CourseEntry(master = edit_course_win, title_text="Editing Courses")
+    courses = db.get_course_titles()
+    if len(courses) == 0:
+        courses = None
+    else:
+        courses = [x[0] for x in courses]
+
+    entry_frame = myentry.CourseEntry(master = edit_course_win, title_text="Editing Courses", combobox_values=courses, push_entries=db.commit_courses_info, combobox_command=write_values_from_db)
     entry_frame.pack(padx=(10,10), pady=(20,10))
 
     # set transparency to 1
@@ -195,6 +211,21 @@ def edit_courses():
     
 
 def edit_segments():
+    
+    def write_dates_from_db(segment):
+        dates = db.get_segment_info(segment)
+        print(dates)
+        if dates is None or len(dates) == 0:
+            edit_segment_win.focus_set()
+            entry_frame.start_dateentry.reset()
+            entry_frame.end_dateentry.reset()
+            return
+        else:
+            dates = dates[0][1:]
+        print(dates)     
+        entry_frame.start_dateentry.write(dates[0])
+        entry_frame.end_dateentry.write(dates[1])
+
     edit_segment_win = ctk.CTkToplevel(fg_color = '#121212')
     
     edit_segment_win.title("Edit Segment Details")
@@ -211,7 +242,8 @@ def edit_segments():
     y_coordinate = int((screen_height/2) - (edit_segment_win_height/2))
     edit_segment_win.geometry("{}x{}+{}+{}".format(edit_segment_win_width, edit_segment_win_height, x_coordinate, y_coordinate))
 
-    entry_frame = myentry.SegmentEntry(master=edit_segment_win)
+    entry_frame = myentry.SegmentEntry(master=edit_segment_win, push_entries=db.commit_segment_dates, option_menu_cmd=write_dates_from_db)
+    write_dates_from_db('1')
     entry_frame.pack(padx=(10,10), pady=(30,30))
 
     # set transparency to 1
