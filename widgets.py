@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import CTkMenuBar
+import CTkDataVisualizingWidgets.CTkDataVisualizingWidgets as dw
 import time
 import commands
 
@@ -221,13 +222,9 @@ class Timetable(ctk.CTkFrame):
     def write_btn_commands(self):
         for i in range(len(self.total_slots)):
             for j in range(len(self.total_slots[i])):
-                self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot(self.total_slots[ni][nj], self.total_slots[ni])
+                pass
+                # self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot2(self.total_slots[ni][nj], self.total_slots[ni])
     
-    def change_btn_text(self):
-        """
-        Takes text from sql db and changes btn text appropriately.
-        """
-        commands.modify_button_text_from_db(self.total_slots)
 
     def toggle_six_nine_btn(self, value, *args):
         print(value, args)
@@ -237,6 +234,9 @@ class Timetable(ctk.CTkFrame):
         else:
             self.six_nine_btn.grid(column=8, row=0, pady=(20,10), padx=(0,20))
             self.six_nine_thu_btn.grid(column = 8, row=7, rowspan=2, pady=(0,10), padx=(0,20))
+    
+    def refresh_timetable(self, *date):
+        commands.change_timetable_to_date(date[::-1], self.total_slots)
 
 class Tabs(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
@@ -261,7 +261,6 @@ class Tabs(ctk.CTkTabview):
 
         self.timetable_frame.create_total_slots_tuple()
         self.timetable_frame.write_btn_commands()
-        self.timetable_frame.change_btn_text()
 
 class MenuBar():
     def __init__(self, master, **kwargs):
@@ -331,9 +330,11 @@ class DashBoard(ctk.CTkFrame):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9), minsize=50)
         
-        label = ctk.CTkLabel(master=self, text="Dashboard")
-        label.grid(row=0, column=0, columnspan=10, padx=(5,5), pady=(5,5))
+        self.label = ctk.CTkLabel(master=self, text="Dashboard")
+        self.label.grid(row=0, column=0, columnspan=10, padx=(5,5), pady=(5,5))
 
+        self.calendar = dw.ctk_calender.CTkCalendar(master=self, today_fg_color="black", date_highlight_color="green",)
+        self.calendar.grid(row=1, column=0, columnspan=10, padx=(10,10), pady=(10,10))
 
 class App(ctk.CTk):
     current_time=time.localtime()
@@ -356,6 +357,8 @@ class App(ctk.CTk):
         # self.my_tabs.grid(row=0, column=0, padx=(10,10), pady=(10,10), sticky='nsew')
         self.my_tabs.pack(padx=(10,10), pady=(10,10), anchor='center')
 
+        self.dash.calendar.calendar_dates_command = self.my_tabs.timetable_frame.refresh_timetable
+        self.my_tabs.timetable_frame.refresh_timetable(App.current_time.tm_mday, App.current_time.tm_mon, App.current_time.tm_year)
 
 # app = App()
 # print(App.current_time)
