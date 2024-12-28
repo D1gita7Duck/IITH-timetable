@@ -82,6 +82,9 @@ def get_course_titles():
 def get_course_info(course_title):
     return cur.execute("""SELECT * FROM courses WHERE c_title=?""", (course_title,)).fetchall()
 
+def get_course_info_from_slot(slot_text : str, slot : str):
+    return cur.execute("""SELECT * FROM courses WHERE slot_text=? AND slot=?""", (slot_text, slot)).fetchall()
+
 def get_all_courses_info():
     return cur.execute("""SELECT * FROM courses""").fetchall()
 

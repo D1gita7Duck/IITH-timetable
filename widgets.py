@@ -219,11 +219,14 @@ class Timetable(ctk.CTkFrame):
                     Timetable.AN_slot,
                     )
         
-    def write_btn_commands(self):
+    def write_btn_commands(self, dash):
         for i in range(len(self.total_slots)):
             for j in range(len(self.total_slots[i])):
-                pass
-                # self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.modify_slot2(self.total_slots[ni][nj], self.total_slots[ni])
+                self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.show_course_details(self.total_slots[ni][nj],
+                                                                                                   self.total_slots[ni],
+                                                                                                   DashBoard.show_undefined_course_frame,
+                                                                                                   DashBoard.show_defined_course_frame,
+                                                                                                   dash)
     
 
     def toggle_six_nine_btn(self, value, *args):
@@ -260,7 +263,6 @@ class Tabs(ctk.CTkTabview):
         self.timetable_frame.draw_fri_slot_btns()
 
         self.timetable_frame.create_total_slots_tuple()
-        self.timetable_frame.write_btn_commands()
 
 class MenuBar():
     def __init__(self, master, **kwargs):
@@ -328,13 +330,103 @@ class MenuBar():
 class DashBoard(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9), minsize=50)
+        self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14), minsize=50)
         
-        self.label = ctk.CTkLabel(master=self, text="Dashboard")
-        self.label.grid(row=0, column=0, columnspan=10, padx=(5,5), pady=(5,5))
+        self.header_label = ctk.CTkLabel(master=self, text="Dashboard", font=("Helvetica", 24))
+        self.header_label.grid(row=0, column=0, columnspan=15, padx=(10,10), pady=(20,10))
 
-        self.calendar = dw.ctk_calender.CTkCalendar(master=self, today_fg_color="black", date_highlight_color="green",)
-        self.calendar.grid(row=1, column=0, columnspan=10, padx=(10,10), pady=(10,10))
+        self.calendar = dw.ctk_calender.CTkCalendar(master=self, width=300, height=300, calendar_label_pad=3, today_fg_color="black", date_highlight_color="green",)
+        self.calendar.grid(row=1, column=0, columnspan=15, padx=(10,10), pady=(10,10))
+
+        self.course_details_label = ctk.CTkLabel(master=self, text="Course Details", font=("Helvetica", 22))
+        self.course_details_label.grid(row=2, column=0, columnspan = 15, padx=(10,10), pady=(10,10))
+
+        self.define_ud_course_frame()
+        self.define_d_course_frame()
+    
+    def define_ud_course_frame(self):
+        self.ud_course_frame = ctk.CTkFrame(master=self, fg_color='#23272D', border_color='#00bfc2', border_width=1)
+        self.ud_course_frame.grid_columnconfigure((0,1,2,3,4), minsize=50)
+        self.ud_course_frame.label = ctk.CTkLabel(master=self.ud_course_frame, text = "Slot not Defined", font=("Helvetica", 20))
+        self.ud_course_frame.label.grid(row=0, column = 0, columnspan = 5, padx=(5,5), pady=(5,5))
+
+    def define_d_course_frame(self):
+        self.d_course_frame  = ctk.CTkFrame(master=self, width=300, height=300, fg_color='#23272D', border_color='#00bfc2', border_width=1)
+        self.d_course_frame.grid_columnconfigure((0,1,2,3,4,5,6,7), minsize=25)
+        self.d_course_frame.grid_rowconfigure((0,1,2,3,4,5), minsize=50)
+        
+        self.d_course_frame.c_title = ctk.CTkLabel(master=self.d_course_frame, text="Course Title")
+        self.d_course_frame.c_code  = ctk.CTkLabel(master=self.d_course_frame, text="Course Code")
+        self.d_course_frame.c_venue = ctk.CTkLabel(master=self.d_course_frame, text="Course Venue")
+        self.d_course_frame.s_start = ctk.CTkLabel(master=self.d_course_frame, text="Start Segment")
+        self.d_course_frame.to_label  = ctk.CTkLabel(master=self.d_course_frame, text="to")
+        self.d_course_frame.s_end   = ctk.CTkLabel(master=self.d_course_frame, text="End Segment")
+        self.d_course_frame.slot_text = ctk.CTkLabel(master=self.d_course_frame, text="Slot Text")
+        self.d_course_frame.slot    = ctk.CTkLabel(master=self.d_course_frame, text="Slot")
+
+        self.d_course_frame.c_title.grid(row=0, column=0, columnspan=10, padx=(10,10), pady=(10,10))
+        self.d_course_frame.c_code.grid(row=2, column=0, columnspan=2, padx=(10,0), pady=(10,10))
+        self.d_course_frame.s_start.grid(row=2, column=3, columnspan=2, padx=(10,0), pady=(10,10))
+        self.d_course_frame.to_label.grid(row=3, column=5, columnspan=1, padx=(10,0), pady=(0,10))
+        self.d_course_frame.s_end.grid(row=2, column=6, columnspan=2, padx=(10,10), pady=(10,10))
+        self.d_course_frame.c_venue.grid(row=4, column=0, columnspan=2, padx=(10,0), pady=(10,10))
+        self.d_course_frame.slot_text.grid(row=4, column=3, columnspan=2, padx=(10,0), pady=(10,10))
+        self.d_course_frame.slot.grid(row=4, column=6, columnspan=2, padx=(10,10), pady=(10,10))
+
+        self.d_course_frame.c_title_text = ctk.CTkTextbox(master=self.d_course_frame, width=350, height=28, font=("Helvetica", 20), wrap='none', border_spacing=3)
+        self.d_course_frame.c_code_text  = ctk.CTkTextbox(master=self.d_course_frame, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.d_course_frame.c_venue_text = ctk.CTkTextbox(master=self.d_course_frame, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.d_course_frame.s_start_text = ctk.CTkTextbox(master=self.d_course_frame, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.d_course_frame.s_end_text   = ctk.CTkTextbox(master=self.d_course_frame, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.d_course_frame.slot_text_text=ctk.CTkTextbox(master=self.d_course_frame, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.d_course_frame.slot_textt   = ctk.CTkTextbox(master=self.d_course_frame, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+
+        self.d_course_frame.text_boxes = (self.d_course_frame.c_title_text,
+                                          self.d_course_frame.c_code_text,
+                                          self.d_course_frame.c_venue_text,
+                                          self.d_course_frame.s_start_text,
+                                          self.d_course_frame.s_end_text,
+                                          self.d_course_frame.slot_text_text,
+                                          self.d_course_frame.slot_textt,
+                                          )
+        
+        for tb in self.d_course_frame.text_boxes:
+            tb.tag_config('center', justify='center')
+            tb.insert('end', "Click a Course", 'center')
+            if tb.xview() != (0.0, 1.0):
+                tb.delete('1.0', 'end')
+                tb.insert('end', "Click a Course")
+            tb.configure(state='disabled')
+
+        self.d_course_frame.c_title_text.grid(row=1, column=0, columnspan=10, padx=(10,10), pady=(0,10))
+        self.d_course_frame.c_code_text.grid(row=3, column=0, columnspan=2, padx=(10,0), pady=(0,10))
+        self.d_course_frame.s_start_text.grid(row=3, column=3, columnspan=2, padx=(10,0), pady=(0,10))
+        self.d_course_frame.s_end_text.grid(row=3, column=6, columnspan=2, padx=(10,10), pady=(0,10))
+        self.d_course_frame.c_venue_text.grid(row=5, column=0, columnspan=2, padx=(10,0), pady=(0,10))
+        self.d_course_frame.slot_text_text.grid(row=5, column=3, columnspan=2, padx=(10,0), pady=(0,10))
+        self.d_course_frame.slot_textt.grid(row=5, column=6, columnspan=2, padx=(10,10), pady=(0,10))   
+
+        
+        self.d_course_frame.grid(row=3, column=0, columnspan=15, padx=(10,10), pady=(10,20))     
+
+    def show_undefined_course_frame(self, slot : str):
+        self.ud_course_frame.label.configure(text = f'{slot} is not defined')
+        self.d_course_frame.grid_remove()
+        self.ud_course_frame.grid(row=3, column=0, columnspan=15, padx=(10,10), pady=(10,10))
+    
+    def show_defined_course_frame(self, args):        
+        args = args[0]
+        for tb, text in zip(self.d_course_frame.text_boxes, args):
+            tb.configure(state='normal')
+            tb.delete('1.0', 'end')
+            tb.insert('end', text, 'center')
+            if tb.xview() != (0.0, 1.0):
+                tb.delete('1.0', 'end')
+                tb.insert('end', text)
+            tb.configure(state='disabled')
+
+        self.ud_course_frame.grid_remove()
+        self.d_course_frame.grid(row=3, column=0, columnspan=15, padx=(10,10), pady=(10,20))
 
 class App(ctk.CTk):
     current_time=time.localtime()
@@ -350,13 +442,14 @@ class App(ctk.CTk):
         self.menubar.make_all_dropdowns()
         self.menubar.six_nine_check._command = lambda value=self.menubar.six_nine_check._variable: self.my_tabs.timetable_frame.toggle_six_nine_btn(value)
 
-        self.dash = DashBoard(master = self, width=1000, height=400, border_width=0.5, fg_color='#23272D', border_color='#00bfc2')
-        self.dash.pack(padx=(20,20), pady=(10,10), side='left', anchor='nw')
+        self.dash = DashBoard(master = self, width=1000, height=400, border_width=1, fg_color='#23272D', border_color='#00bfc2')
+        self.dash.pack(padx=(20,20), pady=(28,10), side='left', anchor='nw')
 
-        self.my_tabs = Tabs(master=self, fg_color='gray')
+        self.my_tabs = Tabs(master=self, fg_color='gray', border_color='#00bfc2', border_width=1)
         # self.my_tabs.grid(row=0, column=0, padx=(10,10), pady=(10,10), sticky='nsew')
         self.my_tabs.pack(padx=(10,10), pady=(10,10), anchor='center')
 
+        self.my_tabs.timetable_frame.write_btn_commands(self.dash)
         self.dash.calendar.calendar_dates_command = self.my_tabs.timetable_frame.refresh_timetable
         self.my_tabs.timetable_frame.refresh_timetable(App.current_time.tm_mday, App.current_time.tm_mon, App.current_time.tm_year)
 

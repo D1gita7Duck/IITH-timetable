@@ -4,6 +4,8 @@ import os
 import db
 import myentry
 
+highlighted_btns = None
+
 def int_2_str(n : int):
     """
     Returns string of given integer. 9 is returned as 09
@@ -157,7 +159,7 @@ def change_timetable_to_date(date : tuple[int], all_slots : tuple[tuple[ctk.CTkB
         if date > d:
             print(date, d)
             seg += 1
-    print(seg)
+    # print(seg)
     courses = db.get_timetable_courses(seg)
 
     clear_timetable(all_slots)
@@ -221,3 +223,25 @@ def modify_slot(slot, output_text, all_slots):
         case 'AN5':
             all_slots[12][4].configure(text = output_text)
     
+def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_undefined, show_defined, dashboard):
+    global highlighted_btns
+
+    btn_text : str = btn.cget("text")
+    s_text = btn_text.split('\n')[0]
+    s = btn_text.split('\t')[-1]
+    if len(btn_text) == 1 or len(btn_text) == 3:
+        show_undefined(dashboard, s)
+    else:
+        show_defined(dashboard, db.get_course_info_from_slot(s_text, s))
+    
+    if highlighted_btns is not None:
+        for x in highlighted_btns:
+            x.configure(border_color = ctk.ThemeManager.theme["CTkButton"]["border_color"], border_width = 0.5)
+
+    if len(btns) == 5:
+        btn.configure(border_color = 'orange', border_width = 1)
+        highlighted_btns = (btn,)
+    else:
+        for btn1 in btns:
+            btn1.configure(border_color = 'orange', border_width = 1)
+        highlighted_btns = btns
