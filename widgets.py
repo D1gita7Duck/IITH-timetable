@@ -335,7 +335,7 @@ class DashBoard(ctk.CTkFrame):
         self.header_label = ctk.CTkLabel(master=self, text="Dashboard", font=("Helvetica", 24))
         self.header_label.grid(row=0, column=0, columnspan=15, padx=(10,10), pady=(20,10))
 
-        self.calendar = dw.ctk_calender.CTkCalendar(master=self, width=300, height=300, calendar_label_pad=3, today_fg_color="black", date_highlight_color="green",)
+        self.calendar = dw.ctk_calender.CTkCalendar(master=self, width=300, height=300, calendar_btns_pad=3, today_fg_color="black", date_highlight_color="green",)
         self.calendar.grid(row=1, column=0, columnspan=15, padx=(10,10), pady=(10,10))
 
         self.course_details_label = ctk.CTkLabel(master=self, text="Course Details", font=("Helvetica", 22))
