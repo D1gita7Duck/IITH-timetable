@@ -50,6 +50,17 @@ def create_courses_table():
                     slot VARCHAR(3)
                     )""")
 
+def create_holidays_table():
+    res = cur.execute(""" SELECT name FROM sqlite_master WHERE type = 'table' AND 
+                      name = 'holidays'""")
+    if (res.fetchone() is None):
+        print("creating holidays table")
+        cur.execute("""CREATE TABLE IF NOT EXISTS holidays (
+                    name varchar(50) PRIMARY KEY,
+                    start DATE,
+                    end DATE
+                    )""")
+
 def write_button_text(slot : str, text : str):
     cur.execute("""UPDATE slot_text SET text = ? WHERE slot = ?""", (text, slot))
     print("*** slot text updated ***")
@@ -95,3 +106,24 @@ def get_timetable_courses(segment):
     if data is None or len(data) == 0:
         raise LookupError("No course found. How? Given date may be beyond 6th segment")
     return data
+
+def commit_holiday(name : str, dates : list[str]):
+    if len(dates) == 1:
+        cur.execute("""UPDATE holidays SET
+                name = ?, start = ?""", (name, dates[0]))
+        if cur.rowcount == 0:
+            cur.execute("""INSERT INTO holidays VALUES(?, ?)""", (name, dates[0]))
+    else:
+        cur.execute("""UPDATE holidays SET
+                    name = ?, start = ?, end = ?""", (name, dates[0], dates[1]))
+        if cur.rowcount == 0:
+            cur.execute("""INSERT INTO holidays VALUES(?, ?, ?)""", (name, dates[0], dates[1]))
+
+def get_holiday_info_from_name(name : str):
+    return cur.execute("""SELECT * FROM holidays WHERE name = ?""", (name,)).fetchall()
+
+def get_holiday_info_from_start(s : str):
+    return cur.execute("""SELECT * FROM holidays WHERE start = ?""", (s,)).fetchall()
+
+def get_all_holidays_info():
+    return cur.execute("""SELECT * FROM holidays""").fetchall()

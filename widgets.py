@@ -241,6 +241,11 @@ class Timetable(ctk.CTkFrame):
     def refresh_timetable(self, *date):
         commands.change_timetable_to_date(date[::-1], self.total_slots)
 
+class Attendance(ctk.CTkScrollableFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+            
+
 class Tabs(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -248,6 +253,10 @@ class Tabs(ctk.CTkTabview):
         self.add("Timetable")
         self.add("Attendance")
 
+        self.create_timetable()
+        self.create_attendance()
+
+    def create_timetable(self):
         self.timetable_frame = Timetable(master=self.tab("Timetable"), width=1200, height=800, border_width=0.5, fg_color='#23272D', border_color='#00bfc2')
         self.timetable_frame.grid_columnconfigure((0,5,8), pad=30)
         
@@ -263,6 +272,10 @@ class Tabs(ctk.CTkTabview):
         self.timetable_frame.draw_fri_slot_btns()
 
         self.timetable_frame.create_total_slots_tuple()
+    
+    def create_attendance(self):
+        self.attendance_frame = Attendance(master=self.tab("Attendance"), width=990, height=525, border_width=0.5, fg_color='#23272D', border_color='#00bfc2')
+        self.attendance_frame.grid(row=0, column=0, padx=20, pady=20, sticky='nsew')
 
 class MenuBar():
     def __init__(self, master, **kwargs):
@@ -293,7 +306,9 @@ class MenuBar():
                                     variable=self.check_var,
                                     # command = self.toggle_btns_grid()
                                 )
-        self.edit_dropdown.add_option(option = "Edit Segments", command=commands.edit_segments)
+        self.edit_dropdown.add_option(option = "Upload Academic Timetable", command=commands.upload_tt)
+        self.edit_dropdown.add_option(option = "Edit Segments Manually", command=commands.edit_segments)
+        self.edit_dropdown.add_option(option = "Edit Holidays", command=commands.edit_holidays)
         self.edit_dropdown.add_option(option = "Edit Courses", command=commands.edit_courses)
         self.edit_dropdown.add_separator()
         self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')

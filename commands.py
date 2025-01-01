@@ -3,6 +3,7 @@ import CTkMessagebox
 import os
 import db
 import myentry
+import read_pdf
 
 highlighted_btns = None
 
@@ -31,6 +32,56 @@ def open_calendar_file():
 def open_source_code():
     pass
 
+def upload_tt():
+
+    def kill_win_n_push_dates(win : ctk.CTkToplevel, dates_dict : dict):
+        for seg, dates in dates_dict.items():
+            if seg.isdigit() == False:
+                # segment break
+                db.commit_holiday(seg, dates)
+            db.commit_segment_dates(seg, dates[0], dates[1])
+        win.destroy()
+
+    def kill_win_n_edit_dates(win : ctk.CTkToplevel, dates_dict : dict):
+        win.destroy()
+        edit_segments(dates_dict)
+
+    f_path = ctk.filedialog.askopenfilename(initialdir=os.getcwd(), title="Choose File", filetypes=[("PDF Files", ".pdf")])
+    tb = read_pdf.TT_Pdf(file_path=f_path)
+
+    confirm_win = ctk.CTkToplevel(fg_color='#121212')
+    confirm_win.title("Confirm Segment Details")
+    confirm_win.resizable(False, False)
+    confirm_win.attributes('-alpha', 0)
+    confirm_win.update_idletasks()
+
+    confirm_win_width=400
+    confirm_win_height=500
+    screen_width=2200
+    screen_height=1200
+    x_coordinate=int((screen_width/2)-(confirm_win_width/2))
+    y_coordinate = int((screen_height/2) - (confirm_win_height/2))
+    confirm_win.geometry("{}x{}+{}+{}".format(confirm_win_width, confirm_win_height, x_coordinate, y_coordinate))
+
+    ctk.CTkLabel(master=confirm_win, text="Confirm Segment Dates", font=("Helvetica", 22)).pack(side='top', pady=(30,10), fill='x')
+
+    frame = ctk.CTkFrame(master=confirm_win, width=350, height=350, border_color='white', border_width=0.5)
+    frame.pack(padx=(10,10), pady=(30, 10), fill = 'y')
+    frame.grid_columnconfigure((0,1,2), minsize = 100)
+    frame.grid_rowconfigure((0,1,2,3,4,5,6), minsize=50)
+
+    ctk.CTkLabel(master=frame, text="Start").grid(row=0, column=1, padx=(0,10), pady=(10,10))
+    ctk.CTkLabel(master=frame, text="End").grid(row=0, column=2, padx=(0,10), pady=(10,10))
+
+    for seg, dates, row in zip(tb.d_dates.keys(), tb.d_dates.values(), range(1,8)):
+        ctk.CTkLabel(master=frame, text=seg).grid(row=row, column=0, padx=(10,10), pady=(0,10))
+        ctk.CTkLabel(master=frame, text=dates[0]).grid(row=row, column=1, padx=(0,10), pady=(0,10))
+        ctk.CTkLabel(master=frame, text=dates[1]).grid(row=row, column=2, padx=(0,10), pady=(0,10))
+    
+    ctk.CTkButton(master=confirm_win, text="OK", command= lambda w=confirm_win, d=tb.d_dates: kill_win_n_push_dates(w, d)).pack(side='right', padx=(10,10), pady=(10,10))
+    ctk.CTkButton(master=confirm_win, text="Edit Dates", command= lambda w=confirm_win, d=tb.d_dates: kill_win_n_edit_dates(w, d)).pack(side='left', padx=(10,10), pady=(10,10))
+
+    confirm_win.attributes('-alpha', 1)
 
 def edit_courses():
 
@@ -73,9 +124,14 @@ def edit_courses():
     edit_course_win.attributes("-topmost", True)
     edit_course_win.focus_set()
     
+def edit_holidays():
+    pass
 
-def edit_segments():
+def edit_segments(values = None):
     
+    def write_dates_from_values(segment):
+        entry_frame.start_dateentry.write(values[segment][0])
+        entry_frame.end_dateentry.write(values[segment][1])
     def write_dates_from_db(segment):
         dates = db.get_segment_info(segment)
         print(dates)
@@ -86,10 +142,10 @@ def edit_segments():
             return
         else:
             dates = dates[0][1:]
-        print(dates)     
+        # print(dates)
         entry_frame.start_dateentry.write(dates[0])
         entry_frame.end_dateentry.write(dates[1])
-
+    opt_cmd = write_dates_from_db if values is None else write_dates_from_values
     edit_segment_win = ctk.CTkToplevel(fg_color = '#121212')
     
     edit_segment_win.title("Edit Segment Details")
@@ -106,8 +162,8 @@ def edit_segments():
     y_coordinate = int((screen_height/2) - (edit_segment_win_height/2))
     edit_segment_win.geometry("{}x{}+{}+{}".format(edit_segment_win_width, edit_segment_win_height, x_coordinate, y_coordinate))
 
-    entry_frame = myentry.SegmentEntry(master=edit_segment_win, push_entries=db.commit_segment_dates, option_menu_cmd=write_dates_from_db)
-    write_dates_from_db('1')
+    entry_frame = myentry.SegmentEntry(master=edit_segment_win, push_entries=db.commit_segment_dates, option_menu_cmd=opt_cmd)
+    opt_cmd('1')
     entry_frame.pack(padx=(10,10), pady=(30,30))
 
     # set transparency to 1
@@ -152,6 +208,7 @@ def clear_timetable(all_slots):
 def change_timetable_to_date(date : tuple[int], all_slots : tuple[tuple[ctk.CTkButton]]):
     date = str(date[0]%100) + '/' + int_2_str(date[1]) + '/' + int_2_str(date[2])
     seg_info = db.get_all_segments_info()
+    print(seg_info)
     seg = 1
     for i in seg_info:
         d = i[2]
@@ -165,6 +222,7 @@ def change_timetable_to_date(date : tuple[int], all_slots : tuple[tuple[ctk.CTkB
     clear_timetable(all_slots)
     for course in courses:
         output_text = course[0] + '\n' + course[1] + '\t' + course[2]
+        # slot is course[2]]
         modify_slot(course[2], output_text, all_slots)
             
 def modify_slot(slot, output_text, all_slots):

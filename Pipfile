@@ -10,6 +10,8 @@ ctklistbox = "*"
 ctkmessagebox = "*"
 ctktooltip = "*"
 ctktable = "*"
+camelot-py = "*"
+pypdf = "*"
 
 [dev-packages]
 
