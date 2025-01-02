@@ -394,3 +394,189 @@ class SegmentEntry(ctk.CTkFrame):
             except ValueError as msg:
                 show_warning(msg)
         
+
+class HoldidayEntry(ctk.CTkFrame):
+    def __init__(self,
+                 master,
+                 width = 200,
+                 height = 200,
+                 corner_radius = None,
+                 border_width = None,
+                 bg_color = "transparent",
+                 fg_color = None,
+                 border_color = None,
+                 background_corner_colors = None,
+                 overwrite_preferred_drawing_method = None,
+
+                 option_menu_cmd = None,
+                 option_menu_values : list = ["Enter a Value"],
+
+                 title_text = "Editing Holidays",
+                 title_justify = "center",
+                 
+                 date_format = 0,
+                 delimiter = '/',
+                 invalid_date_cmd = show_warning,
+                 
+                 clear_entries = None,
+                 push_entries = None,
+                 add_btn_cmd = None,
+                 delete_btn_cmd = None,
+                 **kwargs):
+        super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color, background_corner_colors, overwrite_preferred_drawing_method, **kwargs)
+        self.grid_columnconfigure((0,1,2,3,4,5), minsize=50)
+
+        self._title_text = title_text
+        self._title_justify = title_justify
+        self._option_menu_cmd = option_menu_cmd
+        self._date_format = date_format
+        self._delimiter = delimiter
+        self._invalid_date_cmd = invalid_date_cmd
+        self._clear_entries = clear_entries
+        self._push_entries = push_entries
+        self._add_btn_cmd = add_btn_cmd
+        self._delete_btn_cmd = delete_btn_cmd
+        self._option_menu_values = option_menu_values
+        self.hol_name_var = ctk.StringVar(value="Holiday")
+        self._values_entries_dict = {}
+        self._varnum = 0
+        self._entry_var = "Enter a Value"
+
+        self.title_label = ctk.CTkLabel(master=self, height=40 ,text=self._title_text, justify = self._title_justify, anchor = "center", font=("Helvetica", 25))
+        self.title_label.grid(row=0, column = 0, columnspan = 6, padx=(10,10),pady=(20,10), sticky='nsew')
+
+        self.option_menu = ctk.CTkOptionMenu(master = self, width = 75, height=40, values=self._option_menu_values, command=self.on_option_menu_click)
+        self.option_menu.grid(row=1, column=0, padx=(30,10), pady=(10,10))
+
+        self.add_btn = ctk.CTkButton(master = self, width = 0, height = 0, image=course_add_img, fg_color="transparent", border_width=0.5, border_color='green', text = "", corner_radius=100, hover=False, command=self.on_add_click)
+        self.add_btn.grid(row = 1, column = 2, padx=(0,10), pady=(10,10), sticky='nsew')
+
+        self.delete_btn = ctk.CTkButton(master = self, width = 0, height = 0, image=course_delete_img, fg_color="transparent", border_width=0.5, border_color='orange', text = "", corner_radius=100, hover=False, command = self.on_delete_click)
+        self.delete_btn.grid(row = 1, column = 3, padx=(0,20), pady=(10,10), sticky='nsew')
+
+        self.hol_name_label = ctk.CTkLabel(master=self, text="Holiday Name")
+        self.date_label = ctk.CTkLabel(master=self, text="End Date")
+        self.hol_name_label.grid(row=2, column=0, padx=(10,10), pady=(10,10))
+        self.date_label.grid(row=2, column=4, padx=(10,10), pady=(10,10))
+
+        self.hol_name_entry = ctk.CTkEntry(master=self, width=100, height=40, textvariable=self.hol_name_var)
+        self.date_entry =  DateTextEntry(master=self, date_format=self._date_format, width=100, delimiter=self._delimiter, invalid_date_cmd=self._invalid_date_cmd)
+        self.hol_name_entry.grid(row=3, column=0, padx=(10,10), pady=(0,20))
+        self.date_entry.grid(row=3, column=4, padx=(10,10), pady=(0,20))
+
+        self.clear_btn = ctk.CTkButton(master=self, width = 100, height=40, text="Clear", anchor="center", command=self.clear_entries)
+        self.clear_btn.grid(row = 4, column = 0,  sticky='nw', padx=(30,20), pady=(0,10))
+
+        self.push_btn = ctk.CTkButton(master=self, width = 100, height=40, text="Push", anchor="center", command=self.commit_entries)
+        self.push_btn.grid(row = 4, column = 4,  sticky='nw', padx=(10,10), pady=(0,10))
+
+        self.close_self_btn = ctk.CTkButton(master = self, width=100, height=40, text="Close", anchor="center", command = self.master.destroy)
+        self.close_self_btn.grid(row=5, column = 0, columnspan = 6, padx=(30,40),pady=(10,20), sticky='nsew')
+
+        self.entries = (self.hol_name_entry, self.date_entry)
+
+    def check_entries(self):
+        """
+        Returns 1 for any error. Returns 0 if all ok
+        """
+        if self.hol_name_var == '':
+            show_warning("Give Holiday name")
+            return 1
+        try:
+            d = self.date_entry.get_str()
+        except ValueError as msg:
+            show_warning(msg)
+            return 1
+        return 0
+
+    def set_entries_to(self, box_value):
+        self.option_menu.set(box_value)
+        for i in range(2):
+            if i == 0:
+                self.hol_name_var.set(self._values_entries_dict[box_value][i])
+            else:
+                self.date_entry.write(self._values_entries_dict[box_value][i])
+        self._entry_var = box_value
+
+    def reset_option_menu(self):
+        self._option_menu_values = ["Enter a Value"]
+        self.option_menu.configure(values = self._option_menu_values)
+        self._values_entries_dict.clear()
+        self.option_menu.set("Enter a Value")
+        self._entry_var = "Enter a Value"
+        
+        self.clear_entries()
+
+    def on_option_menu_click(self, box_value):
+        if self._option_menu_cmd is not None:
+            self._option_menu_cmd(box_value)
+            return
+        if self.check_entries():
+            self.option_menu.set(self._entry_var)
+            return
+        if (box_value == "Enter a Value"):
+            return
+
+        self.set_entries_to(box_value)
+
+    def on_add_click(self):
+        if self.check_entries():
+            return
+        
+        new_option = "New Hol " + str(self._varnum)
+        self._varnum += 1
+        self._option_menu_values.append(new_option)
+        self.option_menu.configure(values = self._option_menu_values)
+        self.option_menu.set(new_option)
+        self._entry_var = new_option
+
+        self.clear_entries()
+
+        if self._add_btn_cmd is not None:
+            self._add_btn_cmd()
+
+    def on_delete_click(self):
+        box_value = self.option_menu.get()
+        if len(self._option_menu_values) == 1:
+            self.reset_option_menu()
+        else:
+            index = self._option_menu_values.index(box_value) - 1
+            self.option_menu.set(self._option_menu_values[index])
+            self._entry_var = self._option_menu_values[index]
+            self.set_entries_to(self._option_menu_values[index])
+            self._option_menu_values.remove(box_value)
+            self.option_menu.configure(values = self._option_menu_values)
+            print(self._values_entries_dict.pop(box_value, "Trying to delete new course"))
+            
+        if self._delete_btn_cmd is not None:
+            self._delete_btn_cmd(self.entries)  
+
+    def clear_entries(self):
+        self.hol_name_var.set("Holiday")
+        self.date_entry.reset()
+
+        if self._clear_entries is not None:
+            self._clear_entries(self.entries)
+    
+    def commit_entries(self):
+        if self.check_entries():
+            return
+        
+        key = self.hol_name_var.get()
+        value = [self.hol_name_var.get(), self.date_entry.get_str()]
+        box_value = self.option_menu.get()
+
+        if "Enter a Value" in self._option_menu_values:
+            self._option_menu_values.remove("Enter a Value")
+        if "New Hol" in box_value:
+            self._option_menu_values.remove(box_value)
+        if key not in self._option_menu_values:
+            self._option_menu_values.append(key)
+        
+        self.option_menu.configure(values = self._option_menu_values)
+        self.option_menu.set(key)
+        self._values_entries_dict.update({key : value})
+        print(self._values_entries_dict)
+        
+        if self._push_entries is not None:
+            self._push_entries(self.hol_name_var, self.date_entry.get_str())
