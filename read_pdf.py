@@ -1,6 +1,12 @@
 import camelot
 from pypdf import PdfReader
 
+def isleap(year):
+    """
+    Returns 1 if its leap year, else 0
+    """
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
 def normalize_str(s : str):
     n_s = ""
     for char in s:
@@ -71,6 +77,31 @@ def get_next_date_str(s : str, leap : bool = False):
         next_day = int_2_str(int(day) + 1)
     return next_day + ' ' + to_camel_case(month)
 
+def get_prev_date_str(s : str, leap : bool = False):
+    """
+    s should be of the form dd mon. Eg: '10 Jun' returns '09 Jun'
+    """
+    # prev of 01 jan is 31 dec
+    # check for leap and mar
+    months_list = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+    day, month = s.split(' ')
+    month = month.lower().strip()
+    if day == '01' and month in ["may", "jul", "oct", "dec"]:
+        prev_day = '30'
+        month = months_list[months_list.index(month)-1]
+    elif day == '01' and month in ["feb", "apr", "jun", "aug", "sep", "nov", "jan"]:
+        prev_day = '31'
+        month = months_list[months_list.index(month)-1]
+    elif day == '01' and month == "mar" and leap == False:
+        prev_day = '28'
+        month = 'feb'
+    elif day == '01' and month == "mar" and leap == True:
+        prev_day = '29'
+        month = 'feb'
+    else:
+        prev_day = int_2_str(int(day) - 1)
+    return prev_day + ' ' + to_camel_case(month)
+    
 def find_start_date(row):
     for item in row:
         if item in {row.Index, row._1}:
@@ -110,13 +141,18 @@ def find_no_w_days(row):
 
 class TT_Pdf:
     def __init__(self, file_path):
-        tb = camelot.read_pdf(filepath=file_path, pages='1,2', flavor='lattice')
+        self.file_path = file_path
+        self.year = None
+        self.holidays = {}
+        
+        self.get_year_from_title()
+        self.tb = camelot.read_pdf(filepath=self.file_path, pages='1,2', flavor='lattice')
 
         self.s_dates = []
         self.e_dates = []
         self.no_working_days = []
         prev = None
-        for i in tb[1].df.itertuples():
+        for i in self.tb[1].df.itertuples():
             # print(prev)
             if i.Index == 0:
                 prev = i
@@ -125,6 +161,7 @@ class TT_Pdf:
                 self.s_dates.append(find_start_date(i))
                 self.e_dates.append(find_end_date(prev))
                 self.no_working_days.append(find_no_w_days(i))
+            self.find_holidays(i)
             prev = i
         self.e_dates = self.e_dates[1:]
 
@@ -146,7 +183,12 @@ class TT_Pdf:
                 self.d_dates[str(self.sem_break_seg)] = [self.d_dates.get(str(self.sem_break_seg))[0], end]
                 flag = 1
 
-        page_1 = PdfReader(stream=file_path).pages[0]
+        self.convert_dd_to_date()
+        self.convert_hol_to_date()
+        print(self.holidays)
+    
+    def get_year_from_title(self):
+        page_1 = PdfReader(stream=self.file_path).pages[0]
         text = page_1.extract_text()
         for line in text.split('\n'):
             if line != '':
@@ -156,10 +198,7 @@ class TT_Pdf:
         req_line = req_line[:-2]
         self.year = int_2_str(int(req_line.split(' ')[-1])%100)
 
-        self.convert_to_date()
-        print(self.d_dates)
-    
-    def convert_to_date(self):
+    def convert_dd_to_date(self):
         for key, dates in self.d_dates.items():
             s_date, s_month = dates[0].split(' ')
             s_month = month_2_int(s_month)
@@ -169,3 +208,32 @@ class TT_Pdf:
             e = e_date + '/' + e_month + '/' + self.year
             
             self.d_dates[key] = [s, e]
+    
+    def convert_hol_to_date(self):
+        for key, dates in self.holidays.items():
+            date, month = dates.split()
+            month = month_2_int(month)
+            d = date + '/' + month + '/' + self.year
+
+            self.holidays[key] = d
+    
+    def find_holidays(self, row):
+        before = None
+        for item, index in zip(row, range(0,10)):
+            if index in [0,1]:
+                before = item
+                continue
+            if normalize_str(item).split(' ')[0].isdigit() != True and len(normalize_str(item)) > 0:
+                # item will be holiday
+                if normalize_str(row._1).lower().strip(' ') == "semester break":
+                    continue
+                item = normalize_str(item)
+                item = item.strip(' *')
+                if index == 2:
+                    self.holidays[item] = get_prev_date_str(normalize_str(row._3), isleap(int(self.year)))
+                else:
+                    self.holidays[item] = get_next_date_str(normalize_str(before) , isleap(int(self.year)))
+            before = item
+
+# a = TT_Pdf("D:\\College\\IITH-Academic_Calendar_Jan-Apr-2025.pdf")
+# print(normalize_str('Good \nFriday').lower().strip(' *').replace(' ', '').isalpha())

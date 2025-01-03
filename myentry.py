@@ -448,10 +448,10 @@ class HoldidayEntry(ctk.CTkFrame):
         self.option_menu = ctk.CTkOptionMenu(master = self, width = 75, height=40, values=self._option_menu_values, command=self.on_option_menu_click)
         self.option_menu.grid(row=1, column=0, padx=(30,10), pady=(10,10))
 
-        self.add_btn = ctk.CTkButton(master = self, width = 0, height = 0, image=course_add_img, fg_color="transparent", border_width=0.5, border_color='green', text = "", corner_radius=100, hover=False, command=self.on_add_click)
+        self.add_btn = ctk.CTkButton(master = self, width = 0, height = 0, image=course_add_img, fg_color="transparent", text = "", corner_radius=100, hover=False, command=self.on_add_click)
         self.add_btn.grid(row = 1, column = 2, padx=(0,10), pady=(10,10), sticky='nsew')
 
-        self.delete_btn = ctk.CTkButton(master = self, width = 0, height = 0, image=course_delete_img, fg_color="transparent", border_width=0.5, border_color='orange', text = "", corner_radius=100, hover=False, command = self.on_delete_click)
+        self.delete_btn = ctk.CTkButton(master = self, width = 0, height = 0, image=course_delete_img, fg_color="transparent", text = "", corner_radius=100, hover=False, command = self.on_delete_click)
         self.delete_btn.grid(row = 1, column = 3, padx=(0,20), pady=(10,10), sticky='nsew')
 
         self.hol_name_label = ctk.CTkLabel(master=self, text="Holiday Name")
@@ -493,10 +493,15 @@ class HoldidayEntry(ctk.CTkFrame):
         self.option_menu.set(box_value)
         for i in range(2):
             if i == 0:
-                self.hol_name_var.set(self._values_entries_dict[box_value][i])
+                self.hol_name_var.set(box_value)
             else:
-                self.date_entry.write(self._values_entries_dict[box_value][i])
+                self.date_entry.write(self._values_entries_dict[box_value])
         self._entry_var = box_value
+
+    def set_entries_to_given_values(self, box_value, values):
+        self.option_menu.set(box_value)
+        self.hol_name_var.set(values[0])
+        self.date_entry.write(values[1])
 
     def reset_option_menu(self):
         self._option_menu_values = ["Enter a Value"]
@@ -563,7 +568,7 @@ class HoldidayEntry(ctk.CTkFrame):
             return
         
         key = self.hol_name_var.get()
-        value = [self.hol_name_var.get(), self.date_entry.get_str()]
+        value = self.date_entry.get_str()
         box_value = self.option_menu.get()
 
         if "Enter a Value" in self._option_menu_values:
@@ -579,4 +584,4 @@ class HoldidayEntry(ctk.CTkFrame):
         print(self._values_entries_dict)
         
         if self._push_entries is not None:
-            self._push_entries(self.hol_name_var, self.date_entry.get_str())
+            self._push_entries(self.hol_name_var.get(), self.date_entry.get_str())

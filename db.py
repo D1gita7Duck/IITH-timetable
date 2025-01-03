@@ -58,7 +58,8 @@ def create_holidays_table():
         cur.execute("""CREATE TABLE IF NOT EXISTS holidays (
                     name varchar(50) PRIMARY KEY,
                     start DATE,
-                    end DATE
+                    end DATE,
+                    no_of_days INT
                     )""")
 
 def write_button_text(slot : str, text : str):
@@ -107,17 +108,21 @@ def get_timetable_courses(segment):
         raise LookupError("No course found. How? Given date may be beyond 6th segment")
     return data
 
-def commit_holiday(name : str, dates : list[str]):
-    if len(dates) == 1:
+def commit_holiday(name : str, dates : list[str] | str, n_days : int = 1):
+    if type(dates) == type([]):
         cur.execute("""UPDATE holidays SET
-                name = ?, start = ?""", (name, dates[0]))
+                    name = ?, start = ?, end = ?, no_of_days = ? WHERE name = ?""", (name, dates[0], dates[1], n_days, name))
         if cur.rowcount == 0:
-            cur.execute("""INSERT INTO holidays VALUES(?, ?)""", (name, dates[0]))
+            cur.execute("""INSERT INTO holidays VALUES(?, ?, ?, ?)""", (name, dates[0], dates[1], n_days))
     else:
         cur.execute("""UPDATE holidays SET
-                    name = ?, start = ?, end = ?""", (name, dates[0], dates[1]))
+                name = ?, start = ?, no_of_days = ? WHERE name = ?""", (name, dates, n_days, name))
         if cur.rowcount == 0:
-            cur.execute("""INSERT INTO holidays VALUES(?, ?, ?)""", (name, dates[0], dates[1]))
+            cur.execute("""INSERT INTO holidays
+                        (name, start, no_of_days)
+                        VALUES(?, ?, ?)""", (name, dates, n_days))
+        
+    print(get_all_holidays_info())
 
 def get_holiday_info_from_name(name : str):
     return cur.execute("""SELECT * FROM holidays WHERE name = ?""", (name,)).fetchall()

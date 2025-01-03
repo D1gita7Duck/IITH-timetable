@@ -298,20 +298,12 @@ class MenuBar():
     
     def make_edit_dropdown(self):
         self.edit_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.edit_button, separator_color='white')
-        self.check_var = ctk.IntVar(value=0)
-        self.six_nine_check = ctk.CTkCheckBox(
-                                    master=self.edit_dropdown,
-                                    text = "Six to Nine Button",
-                                    hover=True,
-                                    variable=self.check_var,
-                                    # command = self.toggle_btns_grid()
-                                )
+        
         self.edit_dropdown.add_option(option = "Upload Academic Timetable", command=commands.upload_tt)
-        self.edit_dropdown.add_option(option = "Edit Segments Manually", command=commands.edit_segments)
+        self.edit_dropdown.add_separator()
+        self.edit_dropdown.add_option(option = "Edit Segments", command=commands.edit_segments)
         self.edit_dropdown.add_option(option = "Edit Holidays", command=commands.edit_holidays)
         self.edit_dropdown.add_option(option = "Edit Courses", command=commands.edit_courses)
-        self.edit_dropdown.add_separator()
-        self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')
     
     def make_options_dropdown(self):
         self.options_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.options_button)
@@ -322,15 +314,21 @@ class MenuBar():
                                     from_=0,
                                     to=1,
                                     state='normal',
-                                    # progress_color=initialized_items['current_theme']["color3"],
-                                    # button_color=initialized_items['current_theme']["color4"],
-                                    # button_hover_color=initialized_items['current_theme']["color5"],
                                     orientation="horizontal",
                                     command=self.adjust_transparency,
                                     width=100,
                                 )
         self.transparency_slider.set(0.92)
         self.transparency_slider.pack(pady=(0,10), padx=(10,10), anchor='center', fill='x')
+        self.check_var = ctk.IntVar(value=0)
+        self.six_nine_check = ctk.CTkCheckBox(
+                                    master=self.options_dropdown,
+                                    text = "Six to Nine Button",
+                                    hover=True,
+                                    variable=self.check_var,
+                                    # command = self.toggle_btns_grid()
+                                )        
+        self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')
     
     def make_help_dropdown(self):        
         self.help_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self.help_button)
@@ -346,6 +344,7 @@ class DashBoard(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14), minsize=50)
+        self.grid_rowconfigure((0,1,2,3,4,5,6,7,8,), minsize=50)
         
         self.header_label = ctk.CTkLabel(master=self, text="Dashboard", font=("Helvetica", 24))
         self.header_label.grid(row=0, column=0, columnspan=15, padx=(10,10), pady=(20,10))
@@ -354,7 +353,7 @@ class DashBoard(ctk.CTkFrame):
         self.calendar.grid(row=1, column=0, columnspan=15, padx=(10,10), pady=(10,10))
 
         self.course_details_label = ctk.CTkLabel(master=self, text="Course Details", font=("Helvetica", 22))
-        self.course_details_label.grid(row=2, column=0, columnspan = 15, padx=(10,10), pady=(10,10))
+        self.course_details_label.grid(row=3, column=0, columnspan = 15, padx=(10,10), pady=(10,10))
 
         self.define_ud_course_frame()
         self.define_d_course_frame()
@@ -419,15 +418,14 @@ class DashBoard(ctk.CTkFrame):
         self.d_course_frame.s_end_text.grid(row=3, column=6, columnspan=2, padx=(10,10), pady=(0,10))
         self.d_course_frame.c_venue_text.grid(row=5, column=0, columnspan=2, padx=(10,0), pady=(0,10))
         self.d_course_frame.slot_text_text.grid(row=5, column=3, columnspan=2, padx=(10,0), pady=(0,10))
-        self.d_course_frame.slot_textt.grid(row=5, column=6, columnspan=2, padx=(10,10), pady=(0,10))   
-
+        self.d_course_frame.slot_textt.grid(row=5, column=6, columnspan=2, padx=(10,10), pady=(0,10))
         
-        self.d_course_frame.grid(row=3, column=0, columnspan=15, padx=(10,10), pady=(10,20))     
+        self.d_course_frame.grid(row=4, column=0, columnspan=15, padx=(10,10), pady=(10,20))     
 
     def show_undefined_course_frame(self, slot : str):
         self.ud_course_frame.label.configure(text = f'{slot} is not defined')
         self.d_course_frame.grid_remove()
-        self.ud_course_frame.grid(row=3, column=0, columnspan=15, padx=(10,10), pady=(10,10))
+        self.ud_course_frame.grid(row=4, column=0, columnspan=15, padx=(10,10), pady=(10,10))
     
     def show_defined_course_frame(self, args):        
         args = args[0]
@@ -441,7 +439,7 @@ class DashBoard(ctk.CTkFrame):
             tb.configure(state='disabled')
 
         self.ud_course_frame.grid_remove()
-        self.d_course_frame.grid(row=3, column=0, columnspan=15, padx=(10,10), pady=(10,20))
+        self.d_course_frame.grid(row=4, column=0, columnspan=15, padx=(10,10), pady=(10,20))
 
 class App(ctk.CTk):
     current_time=time.localtime()
@@ -457,7 +455,7 @@ class App(ctk.CTk):
         self.menubar.make_all_dropdowns()
         self.menubar.six_nine_check._command = lambda value=self.menubar.six_nine_check._variable: self.my_tabs.timetable_frame.toggle_six_nine_btn(value)
 
-        self.dash = DashBoard(master = self, width=1000, height=400, border_width=1, fg_color='#23272D', border_color='#00bfc2')
+        self.dash = DashBoard(master = self, width=1000, height=500, border_width=1, fg_color='#23272D', border_color='#00bfc2')
         self.dash.pack(padx=(20,20), pady=(28,10), side='left', anchor='nw')
 
         self.my_tabs = Tabs(master=self, fg_color='gray', border_color='#00bfc2', border_width=1)

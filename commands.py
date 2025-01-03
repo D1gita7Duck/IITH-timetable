@@ -16,6 +16,23 @@ def int_2_str(n : int):
     else:
         return str(n)
 
+def days_between(start : str, end : str, inclusive : bool = True):
+    """
+    Assuming date is passed as DD/MM/YY
+    """
+    # convert to YY/MM/DD
+    start = start.split('/')[::-1]
+    end = end.split('/')[::-1]
+    s = ''
+    e = ''
+    for x, y in zip(start, end):
+        s += x
+        e += y
+    s = int(s)
+    e = int(e)
+    
+    return e - s + inclusive
+
 def show_warning(msg : str):
     warning_window = CTkMessagebox.CTkMessagebox(
                         title="Warning!",
@@ -34,17 +51,21 @@ def open_source_code():
 
 def upload_tt():
 
-    def kill_win_n_push_dates(win : ctk.CTkToplevel, dates_dict : dict):
+    def kill_win_n_push_dates(win : ctk.CTkToplevel, dates_dict : dict, hols_dict : dict):
         for seg, dates in dates_dict.items():
             if seg.isdigit() == False:
-                # segment break
-                db.commit_holiday(seg, dates)
+                # semester break
+                db.commit_holiday(seg, dates, days_between(dates[0], dates[1]))
             db.commit_segment_dates(seg, dates[0], dates[1])
+        for hol, date in hols_dict.items():
+            print(date)
+            db.commit_holiday(hol, date)
         win.destroy()
 
-    def kill_win_n_edit_dates(win : ctk.CTkToplevel, dates_dict : dict):
+    def kill_win_n_edit_dates(win : ctk.CTkToplevel, dates_dict : dict, hols_dict : dict):
         win.destroy()
         edit_segments(dates_dict)
+        edit_holidays(hols_dict)
 
     f_path = ctk.filedialog.askopenfilename(initialdir=os.getcwd(), title="Choose File", filetypes=[("PDF Files", ".pdf")])
     tb = read_pdf.TT_Pdf(file_path=f_path)
@@ -65,9 +86,9 @@ def upload_tt():
 
     ctk.CTkLabel(master=confirm_win, text="Confirm Segment Dates", font=("Helvetica", 22)).pack(side='top', pady=(30,10), fill='x')
 
-    frame = ctk.CTkFrame(master=confirm_win, width=350, height=350, border_color='white', border_width=0.5)
+    frame = ctk.CTkScrollableFrame(master=confirm_win, width=300, height=300, border_color='white', border_width=0.5)
     frame.pack(padx=(10,10), pady=(30, 10), fill = 'y')
-    frame.grid_columnconfigure((0,1,2), minsize = 100)
+    frame.grid_columnconfigure((0,1,2), minsize = 50)
     frame.grid_rowconfigure((0,1,2,3,4,5,6), minsize=50)
 
     ctk.CTkLabel(master=frame, text="Start").grid(row=0, column=1, padx=(0,10), pady=(10,10))
@@ -75,11 +96,17 @@ def upload_tt():
 
     for seg, dates, row in zip(tb.d_dates.keys(), tb.d_dates.values(), range(1,8)):
         ctk.CTkLabel(master=frame, text=seg).grid(row=row, column=0, padx=(10,10), pady=(0,10))
-        ctk.CTkLabel(master=frame, text=dates[0]).grid(row=row, column=1, padx=(0,10), pady=(0,10))
-        ctk.CTkLabel(master=frame, text=dates[1]).grid(row=row, column=2, padx=(0,10), pady=(0,10))
+        ctk.CTkLabel(master=frame, text=dates[0]).grid(row=row, column=1, padx=(10,10), pady=(0,10))
+        ctk.CTkLabel(master=frame, text=dates[1]).grid(row=row, column=2, padx=(10,10), pady=(0,10))
     
-    ctk.CTkButton(master=confirm_win, text="OK", command= lambda w=confirm_win, d=tb.d_dates: kill_win_n_push_dates(w, d)).pack(side='right', padx=(10,10), pady=(10,10))
-    ctk.CTkButton(master=confirm_win, text="Edit Dates", command= lambda w=confirm_win, d=tb.d_dates: kill_win_n_edit_dates(w, d)).pack(side='left', padx=(10,10), pady=(10,10))
+    ctk.CTkLabel(master=frame, text="Holidays").grid(row=8, column=1, padx=(10,10), pady=(10,10))
+
+    for name, date, row in zip(tb.holidays.keys(), tb.holidays.values(), range(9,9+len(tb.holidays))):
+        ctk.CTkLabel(master=frame, text=name).grid(row=row, column=0, padx=(10,10), pady=(0,10))
+        ctk.CTkLabel(master=frame, text=date).grid(row=row, column=2, padx=(10,10), pady=(0,10))
+    
+    ctk.CTkButton(master=confirm_win, text="Edit Dates", command= lambda w=confirm_win, d=tb.d_dates, h=tb.holidays: kill_win_n_edit_dates(w, d, h)).pack(side='left', padx=(10,10), pady=(10,10))
+    ctk.CTkButton(master=confirm_win, text="OK", command= lambda w=confirm_win, d=tb.d_dates, h=tb.holidays: kill_win_n_push_dates(w, d, h)).pack(side='right', padx=(10,10), pady=(10,10))
 
     confirm_win.attributes('-alpha', 1)
 
@@ -124,8 +151,50 @@ def edit_courses():
     edit_course_win.attributes("-topmost", True)
     edit_course_win.focus_set()
     
-def edit_holidays():
-    pass
+def edit_holidays(values = None):
+    
+    def write_dates_from_values():
+        entry_frame._values_entries_dict = values
+        entry_frame._option_menu_values = list(values.keys())
+        entry_frame.option_menu.configure(list(values.keys()))
+        entry_frame.set_entries_to(entry_frame._option_menu_values[0])
+
+    def write_dates_from_db():
+        data = db.get_all_holidays_info()
+        d = {}
+        for i in data:
+            if i[0].lower() == 'sem_break':
+                continue
+            d[i[0]] = i[1]
+        entry_frame._values_entries_dict = d
+        entry_frame._option_menu_values = list(d.keys())
+        entry_frame.option_menu.configure(values = list(d.keys()))
+        entry_frame.set_entries_to(entry_frame._option_menu_values[0])
+
+    opt_cmd = write_dates_from_db if values is None else write_dates_from_values
+    edit_hol_win = ctk.CTkToplevel(fg_color = '#121212')
+    
+    edit_hol_win.title("Edit Course Details")
+    edit_hol_win.resizable(False, False)
+    # set transparency to 0 until window is completely rendered
+    edit_hol_win.attributes("-alpha", 0)
+    edit_hol_win.update_idletasks()
+
+    edit_hol_win_width=600
+    edit_hol_win_height=425
+    screen_width=2200
+    screen_height=1200
+    x_coordinate=int((screen_width/2)-(edit_hol_win_width/2))
+    y_coordinate = int((screen_height/2) - (edit_hol_win_height/2))
+    edit_hol_win.geometry("{}x{}+{}+{}".format(edit_hol_win_width, edit_hol_win_height, x_coordinate, y_coordinate))
+
+    entry_frame = myentry.HoldidayEntry(master=edit_hol_win, push_entries=db.commit_holiday)
+    opt_cmd()
+    entry_frame.pack(padx=(10,10), pady=(30,30))
+
+    edit_hol_win.attributes('-alpha', 1)
+    edit_hol_win.attributes("-topmost", True)
+    edit_hol_win.focus_set()
 
 def edit_segments(values = None):
     
@@ -294,7 +363,7 @@ def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_u
     
     if highlighted_btns is not None:
         for x in highlighted_btns:
-            x.configure(border_color = ctk.ThemeManager.theme["CTkButton"]["border_color"], border_width = 0.5)
+            x.configure(border_color = "#00bfc2", border_width = 0.5)
 
     if len(btns) == 5:
         btn.configure(border_color = 'orange', border_width = 1)
