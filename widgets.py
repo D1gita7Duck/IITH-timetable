@@ -220,14 +220,17 @@ class Timetable(ctk.CTkFrame):
                     Timetable.AN_slot,
                     )
         
-    def write_btn_commands(self, dash):
+    def write_btn_commands(self, dash, att):
         for i in range(len(self.total_slots)):
             for j in range(len(self.total_slots[i])):
                 self.total_slots[i][j]._command = lambda ni=i, nj=j : commands.show_course_details(self.total_slots[ni][nj],
                                                                                                    self.total_slots[ni],
                                                                                                    DashBoard.show_undefined_course_frame,
                                                                                                    DashBoard.show_defined_course_frame,
-                                                                                                   dash)
+                                                                                                   dash,
+                                                                                                   AttendanceBoard.show_undefined_att_frame,
+                                                                                                   AttendanceBoard.show_defined_att_frame,
+                                                                                                   att)
     
 
     def toggle_six_nine_btn(self, value, *args):
@@ -445,44 +448,32 @@ class DashBoard(ctk.CTkFrame):
 class AttendanceBoard(ctk.CTkFrame):
     add_img = ctk.CTkImage(Image.open("icons\\add.png"), size = (30,30))
     sub_img = ctk.CTkImage(Image.open("icons\\subtract.png"), size = (30,30))
-    slot_mapping = {"ABC": [0,2,3],
-                    "D" : [0,1,4],
-                    "E" : [1,3,4],
-                    "F" : [1,2,4],
-                    "G" : [1,2,4],
-                    "PQ": [0,3],
-                    "RS": [1,4],
-                    "FN1AN1":[0],
-                    "FN2AN2":[1],
-                    "FN3AN3":[2],
-                    "FN4AN4":[3],
-                    "FN5AN5":[4]
-                    }
+
     def __init__(self, master, width=1075, height=300, **kwargs):
         super().__init__(master, width, height, **kwargs)
         self.columnconfigure((0,1,2,3,4,5,6), minsize=100)
         self.rowconfigure((0,1,2,3,4,5,6,7,8), minsize=50)
 
-        self.att = ctk.Variable(value=75)
+        self.att = ctk.Variable(value=0.75)
         self.att_per = ctk.Variable(value='75 %')
-        self.hols = commands.create_hols_list()
         self.w_days = ctk.Variable(value="Click a Course")
         self.textboxes : list[ctk.CTkTextbox] = []
+        self.checkboxes : list[ctk.CTkCheckBox] = []
 
         # input label
         self.input_label = ctk.CTkLabel(master=self, text="Set Required Attendance", font=("Helvetica", 22))
         self.input_label.grid(row=0, column=0, columnspan=4, padx=(10,10), pady=(10,0))
         
         # subtract att button
-        self.sub_btn = ctk.CTkButton(master=self, image=self.sub_img, width=0, height=0, fg_color='transparent', border_width=0, text = "", corner_radius=100, hover=False, command=self.decrease_att)
+        self.sub_btn = ctk.CTkButton(master=self, image=self.sub_img, width=0, height=0, fg_color='transparent', border_width=0, text = "", corner_radius=100, hover=False, command=self.decrease_att, state='disabled')
         self.sub_btn.grid(row=1, column=0, padx=(10,10), pady=(10,0))
         
         # att slider
-        self.att_slider = ctk.CTkSlider(master=self, width=200, from_=0, to=100, number_of_steps=100, variable=self.att, command=self.change_att)
+        self.att_slider = ctk.CTkSlider(master=self, width=200, from_=0, to=1, number_of_steps=100, variable=self.att, command=self.change_att, state='disabled')
         self.att_slider.grid(row=1, column=1 ,columnspan=2, pady=(10,0))
     
         # add att button
-        self.add_btn = ctk.CTkButton(master=self, image=self.add_img, width=0, height=0, fg_color='transparent', border_width=0, text = "", corner_radius=100, hover=False, command=self.increase_att)
+        self.add_btn = ctk.CTkButton(master=self, image=self.add_img, width=0, height=0, fg_color='transparent', border_width=0, text = "", corner_radius=100, hover=False, command=self.increase_att, state='disabled')
         self.add_btn.grid(row=1, column=3, padx=(10,10), pady=(10,0))
 
         # att pecentage label
@@ -517,13 +508,13 @@ class AttendanceBoard(ctk.CTkFrame):
         self.dow_frame.grid(row=1, column=5, rowspan=5, columnspan=3, padx=(10,10), pady=(10,0))
 
         # days of the week
-        self.mon_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Monday")
-        self.tue_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Tuesday")
-        self.wed_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Wednesday")
-        self.thu_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Thursday")
-        self.fri_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Friday")
-        self.sat_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Saturday")
-        self.sun_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Sunday")
+        self.mon_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Monday")
+        self.tue_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Tuesday")
+        self.wed_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Wednesday")
+        self.thu_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Thursday")
+        self.fri_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Friday")
+        self.sat_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Saturday")
+        self.sun_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16), state='disabled', text="Sunday")
 
         self.mon_check.grid(row=0, column=4, columnspan=3, padx=(10,10), pady=(10,0), sticky='w')
         self.tue_check.grid(row=1, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
@@ -532,6 +523,14 @@ class AttendanceBoard(ctk.CTkFrame):
         self.fri_check.grid(row=4, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
         self.sat_check.grid(row=5, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
         self.sun_check.grid(row=6, column=4, columnspan=3, padx=(10,10), pady=(5,10), sticky='w')
+
+        self.checkboxes.append(self.mon_check)
+        self.checkboxes.append(self.tue_check)
+        self.checkboxes.append(self.wed_check)
+        self.checkboxes.append(self.thu_check)
+        self.checkboxes.append(self.fri_check)
+        self.checkboxes.append(self.sat_check)
+        self.checkboxes.append(self.sun_check)
 
         self.textboxes.append(self.w_days_text)
         self.textboxes.append(self.bunk_days_text)
@@ -544,25 +543,68 @@ class AttendanceBoard(ctk.CTkFrame):
             tb.configure(state='disabled')
 
     def att_2_att_per(self):
-        self.att_per.set(str(int(self.att.get()))+' %')
+        self.att_per.set(str(int(self.att.get()*100))+' %')
     
-    def change_att(self, val : int):
+    def change_att(self, *args):
         self.att_2_att_per()
+        commands.change_att_of_highlighted_course(self.att.get(), self.show_defined_att_frame, self)
     
     def decrease_att(self):
         if self.att.get() <= 0 :
             self.att.set(0)
         else:
-            self.att.set(self.att.get()-1)
-        self.att_2_att_per()
+            self.att.set(self.att.get()-0.01)
+        self.change_att()
     
     def increase_att(self):
-        if self.att.get() >= 100:
-            self.att.set(100)
+        if self.att.get() >= 1:
+            self.att.set(1)
         else:
-            self.att.set(self.att.get()+1)
-        self.att_2_att_per()
+            self.att.set(self.att.get()+0.01)
+        self.change_att()
         
+    def show_undefined_att_frame(self, slot):
+        self.att_slider.configure(state='disabled')
+        self.add_btn.configure(state='disabled')
+        self.sub_btn.configure(state='disabled')
+        for tb in self.textboxes:
+            tb.configure(state='normal')
+            tb.tag_config('center', justify='center')
+            tb.insert('end', f"{slot} is not defined", 'center')
+            if tb.xview() != (0.0, 1.0):
+                tb.delete('1.0', 'end')
+                tb.insert('end', f"{slot} is not defined")
+            tb.configure(state='disabled')    
+        
+        for cb in self.checkboxes:
+            cb.deselect()
+            cb.configure(state='disabled')
+    
+    def show_defined_att_frame(self, *args):
+        print(args)
+        self.att_slider.configure(state='normal')
+        self.add_btn.configure(state='normal')
+        self.sub_btn.configure(state='normal')
+        for cb in self.checkboxes:
+            cb.configure(state='normal')
+
+        for tb, text in zip(self.textboxes, args[:2]):
+            tb.configure(state='normal')
+            tb.delete('1.0', 'end')
+            tb.insert('end', text, 'center')
+            if tb.xview() != (0.0, 1.0):
+                tb.delete('1.0', 'end')
+                tb.insert('end', text)
+            tb.configure(state='disabled')
+        
+        # select the working days only
+        for i in range(0,7):
+            if i in args[-1]:
+                self.checkboxes[i].select()
+            else:
+                self.checkboxes[i].deselect()
+                self.checkboxes[i].configure(state='disabled')
+
 
 class App(ctk.CTk):
     current_time=time.localtime()
@@ -585,12 +627,13 @@ class App(ctk.CTk):
         # self.my_tabs.grid(row=0, column=0, padx=(10,10), pady=(10,10), sticky='nsew')
         self.my_tabs.pack(padx=(10,10), pady=(10,10), anchor='center')
 
-        self.my_tabs.timetable_frame.write_btn_commands(self.dash)
         self.dash.calendar.calendar_dates_command = self.my_tabs.timetable_frame.refresh_timetable
         self.my_tabs.timetable_frame.refresh_timetable(App.current_time.tm_mday, App.current_time.tm_mon, App.current_time.tm_year)
 
         self.att_board = AttendanceBoard(master=self, border_width=1, fg_color='#23272D', border_color='#00bfc2')
         self.att_board.pack(side='left', padx=(65,0), pady=(20,20))
+
+        self.my_tabs.timetable_frame.write_btn_commands(self.dash, self.att_board)
 # app = App()
 # print(App.current_time)
 

@@ -4,9 +4,23 @@ import os
 import db
 import myentry
 import read_pdf
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 highlighted_btns = None
+
+slot_mapping = {"ABC": [0,2,3],
+                "D" : [0,1,4],
+                "E" : [1,3,4],
+                "F" : [1,2,4],
+                "G" : [1,2,4],
+                "PQ": [0,3],
+                "RS": [1,4],
+                "FN1AN1":[0],
+                "FN2AN2":[1],
+                "FN3AN3":[2],
+                "FN4AN4":[3],
+                "FN5AN5":[4]
+                }
 
 def int_2_str(n : int):
     """
@@ -24,16 +38,48 @@ def dd_mm_yy_2_yy_mm_dd(date : str, delimiter = '/'):
 def date_2_int(date : str, delimiter='/'):
     return int(date.replace(delimiter, ''))
 
-def days_between(start : str, end : str, inclusive : bool = True):
+def days_between(start : date, end : date, inclusive : bool = True):
     """
     Assuming date is passed as DD/MM/YY
     """
-    # convert to YY/MM/DD
-    # convert to YY/MM/DD
-    s=int(dd_mm_yy_2_yy_mm_dd(start).replace('/', ''))
-    e=int(dd_mm_yy_2_yy_mm_dd(end).replace('/', ''))
-    
-    return e - s + inclusive
+    if isinstance(start, datetime):
+        start = start.date()               # make a date from a datetime
+    if isinstance(end, datetime):
+        end = end.date()                   # make a date from a datetime
+    if inclusive:
+        end += timedelta(days=1)  # correct for inclusivity
+    return (end-start).days
+
+def intervening_weekdays(start, end, inclusive=True, weekdays=[0, 1, 2, 3, 4]):
+    """
+    Call functions as (date(YYYY,MM,DD), date(YYYY,MM,DD), kwargs)
+    """
+    if isinstance(start, datetime):
+        start = start.date()               # make a date from a datetime
+
+    if isinstance(end, datetime):
+        end = end.date()                   # make a date from a datetime
+
+    if end < start:
+        # you can opt to return 0 or swap the dates around instead
+        raise ValueError("start date must be before end date")
+
+    if inclusive:
+        end += timedelta(days=1)  # correct for inclusivity
+
+    try:
+        # collapse duplicate weekdays
+        weekdays = {weekday % 7 for weekday in weekdays}
+    except TypeError:
+        weekdays = [weekdays % 7]
+
+    ref = date.today()                    # choose a reference date
+    ref -= timedelta(days=ref.weekday())  # and normalize its weekday
+
+    # sum up all selected weekdays (max 7 iterations)
+    return sum((ref_plus - start).days // 7 - (ref_plus - end).days // 7
+               for ref_plus in
+               (ref + timedelta(days=weekday) for weekday in weekdays))
 
 def show_warning(msg : str):
     warning_window = CTkMessagebox.CTkMessagebox(
@@ -352,16 +398,44 @@ def modify_slot(slot, output_text, all_slots):
         case 'AN5':
             all_slots[12][4].configure(text = output_text)
     
-def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_undefined, show_defined, dashboard):
+def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_ud_dash, show_d_dash, dashboard, show_ud_att, show_d_att, att_frame):
     global highlighted_btns
 
     btn_text : str = btn.cget("text")
     s_text = btn_text.split('\n')[0]
     s = btn_text.split('\t')[-1]
     if len(btn_text) == 1 or len(btn_text) == 3:
-        show_undefined(dashboard, s)
+        show_ud_dash(dashboard, s)
+        show_ud_att(att_frame, s)
     else:
-        show_defined(dashboard, db.get_course_info_from_slot(s_text, s))
+        show_d_dash(dashboard, db.get_course_info_from_slot(s_text, s))
+        att_info = db.get_att_info_from_slot(s)[0]
+        req_att_per = att_frame.att.get()
+        for key in slot_mapping.keys():
+            if s in key:
+                s_key = key
+                break
+
+        if None in att_info[-2::]:
+            start_date = dd_mm_yy_2_yy_mm_dd(db.get_segment_info(att_info[1])[0][1])
+            end_date   = dd_mm_yy_2_yy_mm_dd(db.get_segment_info(att_info[2])[0][2])
+            start_date=map(int, start_date.split('/'))
+            end_date=map(int, end_date.split('/'))
+            start_date=date(2000+start_date.__next__(), start_date.__next__(), start_date.__next__())            
+            end_date=date(2000+end_date.__next__(), end_date.__next__(), end_date.__next__())
+            
+            no_w_days = intervening_weekdays(start_date, end_date, weekdays=slot_mapping[s_key])
+            hols = create_hols_list()
+            for date0 in hols:
+                if start_date<=date0<=end_date:
+                    no_w_days-=1
+            db.commit_no_days(s, no_w_days)
+            db.commit_req_att_per(s, req_att_per)
+        else:
+            no_w_days = att_info[-2]
+        can_bunk = ((1-req_att_per)*no_w_days).__floor__()
+        slot_w_days = slot_mapping[s_key]
+        show_d_att(att_frame, no_w_days, can_bunk, slot_w_days)
     
     if highlighted_btns is not None:
         for x in highlighted_btns:
@@ -375,16 +449,29 @@ def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_u
             btn1.configure(border_color = 'orange', border_width = 1)
         highlighted_btns = btns
 
+def change_att_of_highlighted_course(att_per : float, show_d_att, att_frame):
+    slot = highlighted_btns[0].cget('text').split('\t')[-1]
+    for key in slot_mapping.keys():
+        if slot in key:
+            s_key = key
+            break
+    no_w_days = db.get_no_days_from_slot(slot)[0][0]
+    can_bunk = ((1-att_per)*no_w_days).__floor__()
+    show_d_att(no_w_days, can_bunk, slot_mapping[s_key])
+    db.commit_req_att_per(slot, att_per)
+
 def create_hols_list():
     hols_info = db.get_all_holidays_info()
     hols = []
     for row in hols_info:
         if row[-1] > 1:
-            start = dd_mm_yy_2_yy_mm_dd(row[1]).split('/')
-            end = dd_mm_yy_2_yy_mm_dd(row[2]).split('/')
-            start = date(2000+int(start[0]), int(start[1]), int(start[2]))
-            end = date(2000+int(end[0]), int(end[1]), int(end[2]))
-            hols.extend([(start+timedelta(days=x)).strftime("%d/%m/%y") for x in range(((end + timedelta(days=1))-start).days)])
+            start = map(int, dd_mm_yy_2_yy_mm_dd(row[1]).split('/'))
+            start = date(2000+start.__next__(), start.__next__(), start.__next__())
+            end = map(int, dd_mm_yy_2_yy_mm_dd(row[2]).split('/'))
+            end = date(2000+end.__next__(), end.__next__(), end.__next__())
+            hols.extend([start+timedelta(days=x) for x in range(((end + timedelta(days=1))-start).days)])
         else:
-            hols.append(row[1])
+            date0 = map(int, dd_mm_yy_2_yy_mm_dd(row[1]).split('/'))
+            date0 = date(2000+date0.__next__(), date0.__next__(), date0.__next__())
+            hols.append(date0)
     return hols

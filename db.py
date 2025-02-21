@@ -4,7 +4,7 @@ import sqlite3
 # 1. slot_text
 # 2. segments
 # 3. courses
-
+# 4. attendance
 
 # format of slot text is:
 # slot (primary key)(varchar(3))    text (varchar(30))
@@ -61,6 +61,28 @@ def create_holidays_table():
                     end DATE,
                     no_of_days INT
                     )""")
+
+def create_attendance_table():
+    res = cur.execute(""" SELECT name FROM sqlite_master WHERE type = 'table' AND 
+                      name = 'attendance'""")
+    if (res.fetchone() is None):
+        print("creating attendance table")
+        cur.execute("""CREATE TABLE IF NOT EXISTS attendance (
+                    c_title VARCHAR(50) PRIMARY KEY,
+                    s_start CHAR(1),
+                    s_end CHAR(1),
+                    slot VARCHAR(3),
+                    no_days INT,
+                    req_att_per FLOAT
+                    )""")
+        res = cur.execute(""" SELECT name FROM sqlite_master WHERE type = 'table' AND 
+                        name = 'courses' """)
+        if (res.fetchone() is not None):
+            print('inserting from courses')
+            cur.execute("""INSERT INTO attendance (c_title, s_start, s_end, slot)
+                        SELECT c_title, s_start, s_end, slot FROM courses""")
+    
+
 
 def write_button_text(slot : str, text : str):
     cur.execute("""UPDATE slot_text SET text = ? WHERE slot = ?""", (text, slot))
@@ -124,6 +146,14 @@ def commit_holiday(name : str, dates : list[str] | str, n_days : int = 1):
         
     print(get_all_holidays_info())
 
+def commit_no_days(slot : str, no_days : int):
+    cur.execute("""UPDATE attendance SET no_days = ? WHERE slot = ?""", (no_days, slot))
+    print(get_att_info_from_slot(slot))
+
+def commit_req_att_per(slot : str, p : float):
+    cur.execute("""UPDATE attendance SET req_att_per = ? WHERE slot = ?""", (p, slot))
+    print(get_att_info_from_slot(slot))
+
 def get_holiday_info_from_name(name : str):
     return cur.execute("""SELECT * FROM holidays WHERE name = ?""", (name,)).fetchall()
 
@@ -132,3 +162,15 @@ def get_holiday_info_from_start(s : str):
 
 def get_all_holidays_info():
     return cur.execute("""SELECT * FROM holidays""").fetchall()
+
+def get_all_att_info():
+    return cur.execute("""SELECT * FROM attendance""").fetchall()
+
+def get_att_info_from_slot(slot : str):
+    return cur.execute("""SELECT * FROM attendance WHERE slot = ?""", (slot,)).fetchall()
+
+def get_no_days_from_slot(slot : str):
+    return cur.execute("""SELECT no_days FROM attendance WHERE slot = ?""", (slot,)).fetchall()
+
+def get_req_att_from_slot(slot : str):
+    return cur.execute("""SELECT req_att_per FROM attendance WHERE slot = ?""", (slot,)).fetchall()
