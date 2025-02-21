@@ -427,7 +427,7 @@ def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_u
             no_w_days = intervening_weekdays(start_date, end_date, weekdays=slot_mapping[s_key])
             hols = create_hols_list()
             for date0 in hols:
-                if start_date<=date0<=end_date:
+                if (start_date<=date0<=end_date) and (date0.weekday() in slot_mapping[s_key]):
                     no_w_days-=1
             db.commit_no_days(s, no_w_days)
             db.commit_req_att_per(s, req_att_per)
@@ -462,7 +462,7 @@ def change_att_of_highlighted_course(att_per : float, show_d_att, att_frame):
 
 def create_hols_list():
     hols_info = db.get_all_holidays_info()
-    hols = []
+    hols : list[date] = []
     for row in hols_info:
         if row[-1] > 1:
             start = map(int, dd_mm_yy_2_yy_mm_dd(row[1]).split('/'))
