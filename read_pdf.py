@@ -234,6 +234,3 @@ class TT_Pdf:
                 else:
                     self.holidays[item] = get_next_date_str(normalize_str(before) , isleap(int(self.year)))
             before = item
-
-# a = TT_Pdf("D:\\College\\IITH-Academic_Calendar_Jan-Apr-2025.pdf")
-# print(normalize_str('Good \nFriday').lower().strip(' *').replace(' ', '').isalpha())
