@@ -3,6 +3,7 @@ import CTkMenuBar
 import CTkDataVisualizingWidgets.CTkDataVisualizingWidgets as dw
 import time
 import commands
+from PIL import Image
 
 class Timetable(ctk.CTkFrame):
     A_slot=tuple()
@@ -294,7 +295,7 @@ class MenuBar():
         self.file_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.file_button, separator_color='white')
         self.file_dropdown.add_option(option = "Open", command = commands.open_calendar_file)
         self.file_dropdown.add_separator()
-        self.file_dropdown.add_option(option = "Exit", )
+        self.file_dropdown.add_option(option = "Exit", command = self.master.destroy)
     
     def make_edit_dropdown(self):
         self.edit_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.edit_button, separator_color='white')
@@ -343,7 +344,7 @@ class MenuBar():
 class DashBoard(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14), minsize=50)
+        self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13), minsize=50)
         self.grid_rowconfigure((0,1,2,3,4,5,6,7,8,), minsize=50)
         
         self.header_label = ctk.CTkLabel(master=self, text="Dashboard", font=("Helvetica", 24))
@@ -441,6 +442,128 @@ class DashBoard(ctk.CTkFrame):
         self.ud_course_frame.grid_remove()
         self.d_course_frame.grid(row=4, column=0, columnspan=15, padx=(10,10), pady=(10,20))
 
+class AttendanceBoard(ctk.CTkFrame):
+    add_img = ctk.CTkImage(Image.open("icons\\add.png"), size = (30,30))
+    sub_img = ctk.CTkImage(Image.open("icons\\subtract.png"), size = (30,30))
+    slot_mapping = {"ABC": [0,2,3],
+                    "D" : [0,1,4],
+                    "E" : [1,3,4],
+                    "F" : [1,2,4],
+                    "G" : [1,2,4],
+                    "PQ": [0,3],
+                    "RS": [1,4],
+                    "FN1AN1":[0],
+                    "FN2AN2":[1],
+                    "FN3AN3":[2],
+                    "FN4AN4":[3],
+                    "FN5AN5":[4]
+                    }
+    def __init__(self, master, width=1075, height=300, **kwargs):
+        super().__init__(master, width, height, **kwargs)
+        self.columnconfigure((0,1,2,3,4,5,6), minsize=100)
+        self.rowconfigure((0,1,2,3,4,5,6,7,8), minsize=50)
+
+        self.att = ctk.Variable(value=75)
+        self.att_per = ctk.Variable(value='75 %')
+        self.hols = commands.create_hols_list()
+        self.w_days = ctk.Variable(value="Click a Course")
+        self.textboxes : list[ctk.CTkTextbox] = []
+
+        # input label
+        self.input_label = ctk.CTkLabel(master=self, text="Set Required Attendance", font=("Helvetica", 22))
+        self.input_label.grid(row=0, column=0, columnspan=4, padx=(10,10), pady=(10,0))
+        
+        # subtract att button
+        self.sub_btn = ctk.CTkButton(master=self, image=self.sub_img, width=0, height=0, fg_color='transparent', border_width=0, text = "", corner_radius=100, hover=False, command=self.decrease_att)
+        self.sub_btn.grid(row=1, column=0, padx=(10,10), pady=(10,0))
+        
+        # att slider
+        self.att_slider = ctk.CTkSlider(master=self, width=200, from_=0, to=100, number_of_steps=100, variable=self.att, command=self.change_att)
+        self.att_slider.grid(row=1, column=1 ,columnspan=2, pady=(10,0))
+    
+        # add att button
+        self.add_btn = ctk.CTkButton(master=self, image=self.add_img, width=0, height=0, fg_color='transparent', border_width=0, text = "", corner_radius=100, hover=False, command=self.increase_att)
+        self.add_btn.grid(row=1, column=3, padx=(10,10), pady=(10,0))
+
+        # att pecentage label
+        self.att_per_label = ctk.CTkLabel(master=self, textvariable=self.att_per, font=("Helvetica", 14))
+        self.att_per_label.grid(row=2, column=1, columnspan=2, pady=(0,0))
+
+        # no of working days label
+        self.no_working_days_label = ctk.CTkLabel(master=self, text="No. of Working Days", font=("Helvetica", 18))
+        self.no_working_days_label.grid(row=3, column=0, columnspan=2, padx=(10,10), pady=(10,0))
+
+        # w_days textbox
+        self.w_days_text = ctk.CTkTextbox(master=self, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.w_days_text.grid(row=4, column=0, columnspan=2, padx=(10,10), pady=(10,0))
+
+        # bunkable label
+        self.bunk_label = ctk.CTkLabel(master=self, text="Can Bunk", font=("Helvetica", 18))
+        self.bunk_label.grid(row=3, column=2, columnspan=2, padx=(10,10), pady=(10,0))
+
+        # bunk textbox
+        self.bunk_days_text = ctk.CTkTextbox(master=self, width=100, height=28, font=("Helvetica", 16), wrap='none', border_spacing=3)
+        self.bunk_days_text.grid(row=4, column=2, columnspan=2, padx=(10,10), pady=(10,0))
+
+        # divider frame
+        self.divider_frame = ctk.CTkFrame(master=self, border_color='#00bfc2', border_width=1, width=2, bg_color='#00bfc2', fg_color='#00bfc2')
+        self.divider_frame.grid(row=0, column=4, rowspan=7, sticky='ns', pady=(0,0))
+
+        # working days label
+        self.working_days_label = ctk.CTkLabel(master=self, text="Course Working Days", font=("Helvetica", 22))
+        self.working_days_label.grid(row=0, column=5, columnspan=3, padx=(0,20), pady=(10,0))
+
+        self.dow_frame = ctk.CTkFrame(master=self, fg_color='#23272D')
+        self.dow_frame.grid(row=1, column=5, rowspan=5, columnspan=3, padx=(10,10), pady=(10,0))
+
+        # days of the week
+        self.mon_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Monday")
+        self.tue_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Tuesday")
+        self.wed_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Wednesday")
+        self.thu_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Thursday")
+        self.fri_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Friday")
+        self.sat_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Saturday")
+        self.sun_check = ctk.CTkCheckBox(master=self.dow_frame, font=("Helvetica", 16),text="Sunday")
+
+        self.mon_check.grid(row=0, column=4, columnspan=3, padx=(10,10), pady=(10,0), sticky='w')
+        self.tue_check.grid(row=1, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
+        self.wed_check.grid(row=2, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
+        self.thu_check.grid(row=3, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
+        self.fri_check.grid(row=4, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
+        self.sat_check.grid(row=5, column=4, columnspan=3, padx=(10,10), pady=(5,0), sticky='w')
+        self.sun_check.grid(row=6, column=4, columnspan=3, padx=(10,10), pady=(5,10), sticky='w')
+
+        self.textboxes.append(self.w_days_text)
+        self.textboxes.append(self.bunk_days_text)
+        for tb in self.textboxes:
+            tb.tag_config('center', justify='center')
+            tb.insert('end', "Click a Course", 'center')
+            if tb.xview() != (0.0, 1.0):
+                tb.delete('1.0', 'end')
+                tb.insert('end', "Click a Course")
+            tb.configure(state='disabled')
+
+    def att_2_att_per(self):
+        self.att_per.set(str(int(self.att.get()))+' %')
+    
+    def change_att(self, val : int):
+        self.att_2_att_per()
+    
+    def decrease_att(self):
+        if self.att.get() <= 0 :
+            self.att.set(0)
+        else:
+            self.att.set(self.att.get()-1)
+        self.att_2_att_per()
+    
+    def increase_att(self):
+        if self.att.get() >= 100:
+            self.att.set(100)
+        else:
+            self.att.set(self.att.get()+1)
+        self.att_2_att_per()
+        
+
 class App(ctk.CTk):
     current_time=time.localtime()
     def __init__(self):
@@ -455,7 +578,7 @@ class App(ctk.CTk):
         self.menubar.make_all_dropdowns()
         self.menubar.six_nine_check._command = lambda value=self.menubar.six_nine_check._variable: self.my_tabs.timetable_frame.toggle_six_nine_btn(value)
 
-        self.dash = DashBoard(master = self, width=1000, height=500, border_width=1, fg_color='#23272D', border_color='#00bfc2')
+        self.dash = DashBoard(master = self, border_width=1, fg_color='#23272D', border_color='#00bfc2')
         self.dash.pack(padx=(20,20), pady=(28,10), side='left', anchor='nw')
 
         self.my_tabs = Tabs(master=self, fg_color='gray', border_color='#00bfc2', border_width=1)
@@ -466,6 +589,8 @@ class App(ctk.CTk):
         self.dash.calendar.calendar_dates_command = self.my_tabs.timetable_frame.refresh_timetable
         self.my_tabs.timetable_frame.refresh_timetable(App.current_time.tm_mday, App.current_time.tm_mon, App.current_time.tm_year)
 
+        self.att_board = AttendanceBoard(master=self, border_width=1, fg_color='#23272D', border_color='#00bfc2')
+        self.att_board.pack(side='left', padx=(65,0), pady=(20,20))
 # app = App()
 # print(App.current_time)
 

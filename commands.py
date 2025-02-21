@@ -4,6 +4,7 @@ import os
 import db
 import myentry
 import read_pdf
+from datetime import date, timedelta
 
 highlighted_btns = None
 
@@ -16,20 +17,21 @@ def int_2_str(n : int):
     else:
         return str(n)
 
+def dd_mm_yy_2_yy_mm_dd(date : str, delimiter = '/'):
+    date = date.split(delimiter)[::-1]
+    return delimiter.join(date)
+
+def date_2_int(date : str, delimiter='/'):
+    return int(date.replace(delimiter, ''))
+
 def days_between(start : str, end : str, inclusive : bool = True):
     """
     Assuming date is passed as DD/MM/YY
     """
     # convert to YY/MM/DD
-    start = start.split('/')[::-1]
-    end = end.split('/')[::-1]
-    s = ''
-    e = ''
-    for x, y in zip(start, end):
-        s += x
-        e += y
-    s = int(s)
-    e = int(e)
+    # convert to YY/MM/DD
+    s=int(dd_mm_yy_2_yy_mm_dd(start).replace('/', ''))
+    e=int(dd_mm_yy_2_yy_mm_dd(end).replace('/', ''))
     
     return e - s + inclusive
 
@@ -372,3 +374,17 @@ def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_u
         for btn1 in btns:
             btn1.configure(border_color = 'orange', border_width = 1)
         highlighted_btns = btns
+
+def create_hols_list():
+    hols_info = db.get_all_holidays_info()
+    hols = []
+    for row in hols_info:
+        if row[-1] > 1:
+            start = dd_mm_yy_2_yy_mm_dd(row[1]).split('/')
+            end = dd_mm_yy_2_yy_mm_dd(row[2]).split('/')
+            start = date(2000+int(start[0]), int(start[1]), int(start[2]))
+            end = date(2000+int(end[0]), int(end[1]), int(end[2]))
+            hols.extend([(start+timedelta(days=x)).strftime("%d/%m/%y") for x in range(((end + timedelta(days=1))-start).days)])
+        else:
+            hols.append(row[1])
+    return hols
