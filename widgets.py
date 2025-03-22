@@ -330,9 +330,9 @@ class MenuBar():
                                     text = "Six to Nine Button",
                                     hover=True,
                                     variable=self.check_var,
-                                    # command = self.toggle_btns_grid()
                                 )        
         self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')
+        self.options_dropdown.add_option(option = "Reset Database", command=commands.reset_db)
     
     def make_help_dropdown(self):        
         self.help_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self.help_button)

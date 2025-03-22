@@ -91,6 +91,27 @@ def show_warning(msg : str):
                         cancel_button='cross',
                     )
 
+def confirmation_win(msg : str, y_cmd = None, n_cmd = None, restart = False):
+    confirm_win = CTkMessagebox.CTkMessagebox(
+                        title="Confirm Action",
+                        message=msg,
+                        icon="warning",
+                        option_1="No",
+                        option_2="Yes",
+                        sound=True,
+                        cancel_button='cross',
+                    )
+    response = confirm_win.get()
+    if response == "Yes":
+        y_cmd()
+        if restart:
+            confirm_win.master.destroy()
+    else:
+        if n_cmd is not None:
+            n_cmd()
+        confirm_win.destroy()
+    
+
 def open_calendar_file():
     pass
 
@@ -475,3 +496,6 @@ def create_hols_list():
             date0 = date(2000+date0.__next__(), date0.__next__(), date0.__next__())
             hols.append(date0)
     return hols
+
+def reset_db():
+    confirmation_win("You are about to delete all data.\nDo you wish to continue?\nApp will have to be restarted manually", y_cmd=db.delete_all_tables, restart=True)

@@ -174,3 +174,9 @@ def get_no_days_from_slot(slot : str):
 
 def get_req_att_from_slot(slot : str):
     return cur.execute("""SELECT req_att_per FROM attendance WHERE slot = ?""", (slot,)).fetchall()
+
+def delete_all_tables():
+    cur.execute("""DROP TABLE segments""")
+    cur.execute("""DROP TABLE courses""")
+    cur.execute("""DROP TABLE holidays""")
+    cur.execute("""DROP TABLE attendance""")
