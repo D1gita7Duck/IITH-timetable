@@ -261,7 +261,7 @@ class Tabs(ctk.CTkTabview):
         self.create_attendance()
 
     def create_timetable(self):
-        self.timetable_frame = Timetable(master=self.tab("Timetable"), width=1200, height=800, border_width=0.5, fg_color='#23272D', border_color='#00bfc2')
+        self.timetable_frame = Timetable(master=self.tab("Timetable"), width=1200, height=800, border_width=0.5,)
         self.timetable_frame.grid_columnconfigure((0,5,8), pad=30)
         
         self.timetable_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew",)
@@ -278,7 +278,7 @@ class Tabs(ctk.CTkTabview):
         self.timetable_frame.create_total_slots_tuple()
     
     def create_attendance(self):
-        self.attendance_frame = Attendance(master=self.tab("Attendance"), width=990, height=525, border_width=0.5, fg_color='#23272D', border_color='#00bfc2')
+        self.attendance_frame = Attendance(master=self.tab("Attendance"), width=990, height=525, border_width=0.5,)
         self.attendance_frame.grid(row=0, column=0, padx=20, pady=20, sticky='nsew')
 
 class MenuBar():
@@ -333,6 +333,10 @@ class MenuBar():
                                 )        
         self.six_nine_check.pack(pady=(10,10), padx=(10,10), anchor='center', fill='x')
         self.options_dropdown.add_option(option = "Reset Database", command=commands.reset_db)
+        self.options_dropdown.theme_menu = self.options_dropdown.add_submenu("Change Theme")
+        self.options_dropdown.theme_menu.add_option(option = "Default", command=lambda: change_theme("default"))
+        self.options_dropdown.theme_menu.add_option(option = "Printable", command=lambda: change_theme("to_print"))
+        self.options_dropdown.theme_menu.add_option(option = "Sweetkind", command=lambda: change_theme("sweetkind"))
     
     def make_help_dropdown(self):        
         self.help_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self.help_button)
@@ -353,7 +357,7 @@ class DashBoard(ctk.CTkFrame):
         self.header_label = ctk.CTkLabel(master=self, text="Dashboard", font=("Helvetica", 24))
         self.header_label.grid(row=0, column=0, columnspan=15, padx=(10,10), pady=(20,10))
 
-        self.calendar = dw.ctk_calender.CTkCalendar(master=self, width=300, height=300, calendar_btns_pad=3, today_fg_color="black", date_highlight_color="green",)
+        self.calendar = dw.ctk_calender.CTkCalendar(master=self, width=300, height=300, calendar_btns_pad=3, today_fg_color="black", date_highlight_color="green", border_width=0.6)
         self.calendar.grid(row=1, column=0, columnspan=15, padx=(10,10), pady=(10,10))
 
         self.course_details_label = ctk.CTkLabel(master=self, text="Course Details", font=("Helvetica", 22))
@@ -363,13 +367,13 @@ class DashBoard(ctk.CTkFrame):
         self.define_d_course_frame()
     
     def define_ud_course_frame(self):
-        self.ud_course_frame = ctk.CTkFrame(master=self, fg_color='#23272D', border_color='#00bfc2', border_width=1)
+        self.ud_course_frame = ctk.CTkFrame(master=self, border_width=1)
         self.ud_course_frame.grid_columnconfigure((0,1,2,3,4), minsize=50)
         self.ud_course_frame.label = ctk.CTkLabel(master=self.ud_course_frame, text = "Slot not Defined", font=("Helvetica", 20))
         self.ud_course_frame.label.grid(row=0, column = 0, columnspan = 5, padx=(5,5), pady=(5,5))
 
     def define_d_course_frame(self):
-        self.d_course_frame  = ctk.CTkFrame(master=self, width=300, height=300, fg_color='#23272D', border_color='#00bfc2', border_width=1)
+        self.d_course_frame  = ctk.CTkFrame(master=self, width=300, height=300, border_width=1)
         self.d_course_frame.grid_columnconfigure((0,1,2,3,4,5,6,7), minsize=25)
         self.d_course_frame.grid_rowconfigure((0,1,2,3,4,5), minsize=50)
         
@@ -609,10 +613,15 @@ class AttendanceBoard(ctk.CTkFrame):
 class App(ctk.CTk):
     current_time=time.localtime()
     def __init__(self):
+        self.theme = 'default' if commands.db.get_theme() == [] else commands.db.get_theme()[0][0]
+        if self.theme == 'to_print':
+            ctk.set_appearance_mode('light')
+        else:
+            ctk.set_appearance_mode('dark')
+        ctk.set_default_color_theme("themes//"+self.theme+".json")
         super().__init__()
         self.geometry(f'{str(self.winfo_screenwidth())}x{str(self.winfo_screenheight())}')
         self.title("Timetable") # window title
-        ctk.set_appearance_mode("dark") # dark mode 
         self.after(5, lambda: self.state("zoomed")) # set to fullscreen
         self.attributes("-alpha", 0.92)
 
@@ -620,20 +629,24 @@ class App(ctk.CTk):
         self.menubar.make_all_dropdowns()
         self.menubar.six_nine_check._command = lambda value=self.menubar.six_nine_check._variable: self.my_tabs.timetable_frame.toggle_six_nine_btn(value)
 
-        self.dash = DashBoard(master = self, border_width=1, fg_color='#23272D', border_color='#00bfc2')
+        self.dash = DashBoard(master = self, border_width=1)
         self.dash.pack(padx=(20,20), pady=(28,10), side='left', anchor='nw')
 
-        self.my_tabs = Tabs(master=self, fg_color='gray', border_color='#00bfc2', border_width=1)
+        self.my_tabs = Tabs(master=self, border_width=1)
         # self.my_tabs.grid(row=0, column=0, padx=(10,10), pady=(10,10), sticky='nsew')
         self.my_tabs.pack(padx=(10,10), pady=(10,10), anchor='center')
 
         self.dash.calendar.calendar_dates_command = self.my_tabs.timetable_frame.refresh_timetable
         self.my_tabs.timetable_frame.refresh_timetable(App.current_time.tm_mday, App.current_time.tm_mon, App.current_time.tm_year)
 
-        self.att_board = AttendanceBoard(master=self, border_width=1, fg_color='#23272D', border_color='#00bfc2')
+        self.att_board = AttendanceBoard(master=self, border_width=1)
         self.att_board.pack(side='left', padx=(65,0), pady=(20,20))
 
         self.my_tabs.timetable_frame.write_btn_commands(self.dash, self.att_board)
+
+def change_theme(to : str):
+    commands.confirmation_win("App will have to be restarted manually", y_cmd= lambda: commands.db.commit_theme(to), restart=True)
+
 # app = App()
 # print(App.current_time)
 

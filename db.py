@@ -1,13 +1,11 @@
 import sqlite3
 
 # db has tables:
-# 1. slot_text
-# 2. segments
-# 3. courses
+# 1. segments
+# 2. courses
+# 3. holidays
 # 4. attendance
-
-# format of slot text is:
-# slot (primary key)(varchar(3))    text (varchar(30))
+# 5. theme
 
 # format of segments is:
 # | segment (int) | start (date) | end (date) |
@@ -82,8 +80,16 @@ def create_attendance_table():
             cur.execute("""INSERT INTO attendance (c_title, s_start, s_end, slot)
                         SELECT c_title, s_start, s_end, slot FROM courses""")
     
+def create_theme_table():
+    res = cur.execute(""" SELECT name FROM sqlite_master WHERE type = 'table' AND 
+                      name = 'theme'""")
+    if (res.fetchone() is None):
+        print("creating theme table")
+        cur.execute("""CREATE TABLE IF NOT EXISTS theme (
+                    theme_name VARCHAR(50)
+                    )""")
 
-
+# deprecated
 def write_button_text(slot : str, text : str):
     cur.execute("""UPDATE slot_text SET text = ? WHERE slot = ?""", (text, slot))
     print("*** slot text updated ***")
@@ -174,6 +180,16 @@ def get_no_days_from_slot(slot : str):
 
 def get_req_att_from_slot(slot : str):
     return cur.execute("""SELECT req_att_per FROM attendance WHERE slot = ?""", (slot,)).fetchall()
+
+def get_theme():
+    return cur.execute("""SELECT * FROM theme""").fetchall()
+
+def commit_theme(t : str):
+    if get_theme() == []:
+        cur.execute("""INSERT INTO theme VALUES (?)""", (t,))
+        return
+    cur.execute("""UPDATE theme SET theme_name = ?""", (t,))
+    print(get_theme())
 
 def delete_all_tables():
     cur.execute("""DROP TABLE segments""")
