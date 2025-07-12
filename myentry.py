@@ -163,9 +163,9 @@ class CourseEntry(ctk.CTkFrame):
         self.close_self_btn.grid(row=12, column = 0, columnspan = 9, padx=(50,50),pady=(10,20), sticky='nsew')
 
     def limit_entry_size(self, limit : int, item : ctk.StringVar, *args):
-        print("called limit func")
+        # print("called limit func")
         # print(args)
-        print(item,'bla', limit)
+        # print(item,'bla', limit)
         value = item.get()
         print(value, '\n\n')
         if (len(value) > limit):
@@ -205,7 +205,12 @@ class CourseEntry(ctk.CTkFrame):
                     return 0
 
     def set_entries_to(self, box_value):
+        """
+        Relies on variables of the CourseEntry Object, not on backend variables. Unwanted behaviour.\n
+        USE set_entries_to_given_values instead.
+        """
         self.combobox.set(box_value)
+        print(f'$${self._values_entries_dict}$$')
         for i in range(7):
             self._placeholders[i].set(self._values_entries_dict[box_value][i])
         self._entry_var = box_value
@@ -257,21 +262,24 @@ class CourseEntry(ctk.CTkFrame):
             self._add_btn_cmd()
 
     def on_delete_click(self):
+        print(f'\nCourseEntry Object DELETE CALLED\n')
         box_value = self.combobox.get()
+
+        if self._delete_btn_cmd is not None:
+            self._delete_btn_cmd(self._placeholders)
+            
         if len(self._combobox_values) == 1:
             self.reset_combobox()
         else:
             index = self._combobox_values.index(box_value) - 1
             self.combobox.set(self._combobox_values[index])
             self._entry_var = self._combobox_values[index]
-            self.set_entries_to(self._combobox_values[index])
+            # self.set_entries_to(self._combobox_values[index])
+            self._combobox_command(self._combobox_values[index])
             self._combobox_values.remove(box_value)
             self.combobox.configure(values = self._combobox_values)
             print(self._values_entries_dict.pop(box_value, "Trying to delete new course"))
             
-        if self._delete_btn_cmd is not None:
-            self._delete_btn_cmd(self._placeholders)  
-
     def clear_entries(self):
         self.entries_frame.course_title_placeholder.set("Course Title")
         self.entries_frame.course_code_placeholder.set("Max 6 char")

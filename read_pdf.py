@@ -114,7 +114,8 @@ def find_end_date(row):
     end_char = ''
     for item, index in zip(row,range(0,10)):
         if index in [0, 1]:
-            if index == 1 and normalize_str(item).lower().strip() == "semester break":
+            # the pdf isn't always consistent with sem break. Sometimes its simply break or whole semester break
+            if index == 1 and normalize_str(item).lower().strip() in ["semester break", "break"]:
                 end_char = '*'
             before[0] = before[1]
             before[1] = item
@@ -186,19 +187,24 @@ class TT_Pdf:
         self.convert_dd_to_date()
         self.convert_hol_to_date()
         print(self.holidays)
+        # print(self.d_dates)
     
     def get_year_from_title(self):
         page_1 = PdfReader(stream=self.file_path).pages[0]
         text = page_1.extract_text()
-        for line in text.split('\n'):
-            if line != '':
-                req_line = line
-                break
-        req_line = req_line.replace('(', '')
-        req_line = req_line[:-2]
-        self.year = int_2_str(int(req_line.split(' ')[-1])%100)
+        # for line in text.split('\n'):
+        #     if line != '':
+        #         req_line = line
+        #         break
+        # req_line = req_line.replace('(', '')
+        # req_line = req_line[:-2]
+        # print(req_line)
+        text = text.split(')')
+        self.year = int_2_str(int(text[0].split()[-1])%100)
+        print(self.year)
 
     def convert_dd_to_date(self):
+        # print(self.d_dates)
         for key, dates in self.d_dates.items():
             s_date, s_month = dates[0].split(' ')
             s_month = month_2_int(s_month)

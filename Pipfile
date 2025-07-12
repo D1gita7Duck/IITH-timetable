@@ -12,6 +12,7 @@ ctktooltip = "*"
 ctktable = "*"
 camelot-py = "*"
 pypdf = "*"
+icalendar = "*"
 
 [dev-packages]
 

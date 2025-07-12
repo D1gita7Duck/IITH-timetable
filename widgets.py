@@ -296,7 +296,7 @@ class MenuBar():
     
     def make_file_dropdown(self):
         self.file_dropdown = CTkMenuBar.CustomDropdownMenu(widget = self.file_button, separator_color='white')
-        self.file_dropdown.add_option(option = "Open", command = commands.open_calendar_file)
+        self.file_dropdown.add_option(option = "Export", command = commands.export_calendar_file)
         self.file_dropdown.add_separator()
         self.file_dropdown.add_option(option = "Exit", command = self.master.destroy)
     

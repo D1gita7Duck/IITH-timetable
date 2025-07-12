@@ -113,6 +113,7 @@ def commit_courses_info(key, value):
                 WHERE c_title = ?""", (value[1], value[2], value[3], value[4], value[5], value[6], key))
     if cur.rowcount == 0:
         cur.execute("""INSERT INTO courses VALUES (?, ?, ?, ?, ?, ?, ?)""", (key, value[1], value[2], value[3], value[4], value[5], value[6]))
+        cur.execute("""INSERT INTO attendance (c_title, s_start, s_end, slot)""", (key, value[3], value[4], value[6]))
     print("inserted course successfully")
     print(get_all_courses_info())
 
@@ -128,12 +129,16 @@ def get_course_info_from_slot(slot_text : str, slot : str):
 def get_all_courses_info():
     return cur.execute("""SELECT * FROM courses""").fetchall()
 
+def get_courses_info_for_cal():
+    return cur.execute("""SELECT slot_text, slot, c_venue, s_start, s_end FROM courses""").fetchall()
+
 def get_timetable_courses(segment):
     res = cur.execute("""SELECT slot_text, c_venue, slot FROM courses
                       WHERE s_start <= ? AND ? <= s_end""", (segment, segment,))
     data = res.fetchall()
     if data is None or len(data) == 0:
-        raise LookupError("No course found. How? Given date may be beyond 6th segment")
+        print(f'*** segment received is {segment}***')
+        # raise LookupError("No course found. How? Given date may be beyond 6th segment")
     return data
 
 def commit_holiday(name : str, dates : list[str] | str, n_days : int = 1):
@@ -190,6 +195,13 @@ def commit_theme(t : str):
         return
     cur.execute("""UPDATE theme SET theme_name = ?""", (t,))
     print(get_theme())
+
+def delete_course(t: tuple):
+    print("******* db.delete_course CALLELEDD**")
+    x = [i.get() for i in t]
+    c_title = x[0]
+    cur.execute("""DELETE FROM courses WHERE c_title = ?""", (c_title,))
+    cur.execute("""DELETE FROM attendance WHERE c_title = ?""", (c_title,))
 
 def delete_all_tables():
     cur.execute("""DROP TABLE segments""")

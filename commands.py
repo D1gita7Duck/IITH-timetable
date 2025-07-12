@@ -112,7 +112,7 @@ def confirmation_win(msg : str, y_cmd = None, n_cmd = None, restart = False):
         confirm_win.destroy()
     
 
-def open_calendar_file():
+def export_calendar_file():
     pass
 
 def open_source_code():
@@ -136,12 +136,15 @@ def upload_tt():
         edit_segments(dates_dict)
         edit_holidays(hols_dict)
 
-    f_path = ctk.filedialog.askopenfilename(initialdir=os.getcwd(), title="Choose File", filetypes=[("PDF Files", ".pdf")])
+    try:
+        f_path = ctk.filedialog.askopenfilename(initialdir=os.getcwd(), title="Choose File", filetypes=[("PDF Files", ".pdf")])
+    except:
+        print("Provide valid nonempty directory!")
     tb = read_pdf.TT_Pdf(file_path=f_path)
 
     confirm_win = ctk.CTkToplevel(fg_color='#121212')
     confirm_win.title("Confirm Segment Details")
-    confirm_win.resizable(False, False)
+    confirm_win.resizable(True, False)
     confirm_win.attributes('-alpha', 0)
     confirm_win.update_idletasks()
 
@@ -212,7 +215,7 @@ def edit_courses():
     else:
         courses = [x[0] for x in courses]
 
-    entry_frame = myentry.CourseEntry(master = edit_course_win, title_text="Editing Courses", combobox_values=courses, push_entries=db.commit_courses_info, combobox_command=write_values_from_db)
+    entry_frame = myentry.CourseEntry(master = edit_course_win, title_text="Editing Courses", combobox_values=courses, push_entries=db.commit_courses_info, combobox_command=write_values_from_db, delete_btn_cmd=db.delete_course)
     entry_frame.pack(padx=(10,10), pady=(20,10))
 
     # set transparency to 1
@@ -344,11 +347,14 @@ def clear_timetable(all_slots):
     all_slots[12][4].configure(text = 'AN5')
 
 def change_timetable_to_date(date : tuple[int], all_slots : tuple[tuple[ctk.CTkButton]]):
+    # date is converted to YY/MM/DD
     date = str(date[0]%100) + '/' + int_2_str(date[1]) + '/' + int_2_str(date[2])
     seg_info = db.get_all_segments_info()
     print(seg_info)
     seg = 1
     for i in seg_info:
+        if i[0] == 'Sem_Break':
+            continue
         d = i[2]
         d = d[6:] + '/' + d[3:5] + '/' + d[0:2]
         if date > d:
