@@ -5,6 +5,7 @@ import db
 import myentry
 import read_pdf
 from datetime import date, timedelta, datetime
+from webbrowser import open as web_open
 
 highlighted_btns = None
 
@@ -116,7 +117,7 @@ def export_calendar_file():
     pass
 
 def open_source_code():
-    pass
+    web_open("https://github.com/D1gita7Duck/IITH-timetable")
 
 def upload_tt():
 

@@ -340,7 +340,7 @@ class MenuBar():
     
     def make_help_dropdown(self):        
         self.help_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self.help_button)
-        self.help_dropdown.add_option(option = "About", command = commands.open_source_code)
+        self.help_dropdown.add_option(option = "View on Github", command = commands.open_source_code)
 
     def make_all_dropdowns(self):
         self.make_file_dropdown()
