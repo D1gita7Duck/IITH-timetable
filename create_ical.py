@@ -2,6 +2,7 @@ import pytz
 from datetime import datetime, date, timedelta
 from icalendar import Calendar, Event, vText, vRecur, vDatetime, Timezone, TimezoneStandard
 import db
+from random import randrange
 
 def date_tuple(date : str, delimiter = '/'):
     """
@@ -111,6 +112,9 @@ slot_timings = {"A":[((9,0,0), (9,55,0)),((11,0,0), (11,55,0)), ((10,0,0), (10,5
                 "AN5":[((14,30,0), (17,25,0))],
                 }
 
+colours = ["red", "purple", "green", "yellow", "blue", "aqua", "maroon", "fuchsia", "lime", "olive", "orange", "navy", "teal", "black", "silver", "gray", "palegreen", "aquamarine"]
+remaining_colours = colours.copy()
+
 db.initialize_db()
 res = db.get_courses_info_for_cal()
 updated_info = []
@@ -148,6 +152,10 @@ vtz.add_component(s_tz)
 cal.add_component(vtz)
 
 for i in updated_info:
+    if len(remaining_colours) < 1:
+        remaining_colours = colours.copy()
+    # chosen = remaining_colours.pop(randrange(len(remaining_colours)))
+    chosen = remaining_colours.pop(0)
     # checking if event is only once a week
     if slot_day_map[i[1]][-1] == 1:
         timing = slot_timings[i[1]][0]
@@ -165,6 +173,7 @@ for i in updated_info:
         event['location'] = vText(i[2])
         event['summary'] = vText(i[0])
         event_count+=1
+        event.color = chosen
         cal.add_component(event)
     # twice a week event
     elif slot_day_map[i[1]][-1] == 2:
@@ -185,6 +194,7 @@ for i in updated_info:
         event0['location'] = vText(i[2])
         event0['summary'] = vText(i[0])
         event_count+=1
+        event0.color = chosen
         cal.add_component(event0)
 
         day1 = bydays[3:]
@@ -199,6 +209,7 @@ for i in updated_info:
         event1['location'] = vText(i[2])
         event1['summary'] = vText(i[0])
         event_count+=1
+        event1.color = chosen
         cal.add_component(event1)
     # thrice a week event
     else:
@@ -220,6 +231,7 @@ for i in updated_info:
         event0['location'] = vText(i[2])
         event0['summary'] = vText(i[0])
         event_count+=1
+        event0.color = chosen
         cal.add_component(event0)
 
         day1 = bydays[3:5]
@@ -235,6 +247,7 @@ for i in updated_info:
         event1['location'] = vText(i[2])
         event1['summary'] = vText(i[0])
         event_count+=1
+        event1.color = chosen
         cal.add_component(event1)
 
         day2 = bydays[6:]
@@ -250,6 +263,7 @@ for i in updated_info:
         event2['location'] = vText(i[2])
         event2['summary'] = vText(i[0])
         event_count+=1
+        event2.color = chosen
         cal.add_component(event2)
 
 print('\n\n\n')
