@@ -46,6 +46,14 @@ def find_nearest_weekday(date : date, weekday : str):
         if date.weekday() == target_weekday:
             return date
 
+def form_holidays(h : list[tuple[str]]):
+    hols : list[date] = []
+    for i in h:
+        s_date = date(2000+int(i[1].split('/')[2]), int(i[1].split('/')[1]), int(i[1].split('/')[0]))
+        # if i[-1] > 1:
+        for j in range(i[-1]):
+            hols.append(s_date + timedelta(days=j))
+    return hols
 # a=find_nearest_weekday(date(2025,7,28), 'SU')
 # print(datetime(a.year, a.month, a.day, tzinfo=pytz.timezone("Asia/Kolkata")))
 # def datetime_2_icaldatetime(date : tuple, time = None):
@@ -117,6 +125,9 @@ remaining_colours = colours.copy()
 
 db.initialize_db()
 res = db.get_courses_info_for_cal()
+updated_hols = form_holidays(db.get_all_holidays_info())
+print(db.get_all_holidays_info())
+# print(updated_hols)
 updated_info = []
 for course in res:
     s_start = course[-2]
@@ -134,6 +145,8 @@ Creating Calendar
 !!!IMPORTANT 
 When inputting properties based on text, no spaces are allowed before and after semicolons
 !!!
+Colours are not supported in Google Calendar :_(
+To add colours in Google Calendar have to use OAuth2 credentials and use Google API client
 '''
 tz = pytz.timezone("Asia/Kolkata")
 event_count = 0 # to make a unique id for each event
@@ -163,6 +176,9 @@ for i in updated_info:
         date_start = find_nearest_weekday(date(i[-2][0], i[-2][1], i[-2][2]), slot_day_map[i[1]][0][:2])
         until = tz.localize(datetime(i[-1][0], i[-1][1], i[-1][2], timing[1][0], timing[1][1])).astimezone(pytz.utc)
         bydays = vText(slot_day_map[i[1]][0])
+        exdates = []
+        for j in updated_hols:
+            exdates.append(tz.localize(datetime(j.year, j.month, j.day, timing[0][0], timing[0][1], timing[0][2])))
 
         event = Event()
         event.add('uid', 'event'+str(event_count))
@@ -170,6 +186,7 @@ for i in updated_info:
         event.add('dtstart', datetime(date_start.year, date_start.month, date_start.day, timing[0][0], timing[0][1], timing[0][2],tzinfo=tz))
         event.add('dtend', datetime(date_start.year, date_start.month, date_start.day, timing[1][0], timing[1][1], timing[1][2],tzinfo=tz))
         event.add('rrule', f"FREQ=WEEKLY;UNTIL={until.strftime("%Y%m%dT%H%M%SZ")};BYDAY={bydays}") # space after semicolons not allowed
+        event.add('exdate', exdates)
         event['location'] = vText(i[2])
         event['summary'] = vText(i[0])
         event_count+=1
@@ -184,13 +201,17 @@ for i in updated_info:
         date_start0 = find_nearest_weekday(date(i[-2][0], i[-2][1], i[-2][2]), day0)
         # until time is 23:59 coz keeping different until for different days (day0, day1, ...) is cumbersome
         until = tz.localize(datetime(i[-1][0], i[-1][1], i[-1][2], 23, 59)).astimezone(pytz.utc)
-        
+        exdates = []
+        for j in updated_hols:
+            exdates.append(tz.localize(datetime(j.year, j.month, j.day, timing0[0][0], timing0[0][1], timing0[0][2])))
+
         event0 = Event()
         event0.add('uid', 'event'+str(event_count))
         event0.add('dtstamp', datetime.now(tz))
         event0.add('dtstart', datetime(date_start0.year, date_start0.month, date_start0.day, timing0[0][0], timing0[0][1], timing0[0][2],tzinfo=tz))
         event0.add('dtend', datetime(date_start0.year, date_start0.month, date_start0.day, timing0[1][0], timing0[1][1], timing0[1][2],tzinfo=tz))
         event0.add('rrule', f"FREQ=WEEKLY;UNTIL={until.strftime("%Y%m%dT%H%M%SZ")};BYDAY={day0}")
+        event0.add('exdate', exdates)
         event0['location'] = vText(i[2])
         event0['summary'] = vText(i[0])
         event_count+=1
@@ -199,6 +220,9 @@ for i in updated_info:
 
         day1 = bydays[3:]
         timing1 = slot_timings[i[1]][1]
+        exdates = []
+        for j in updated_hols:
+            exdates.append(tz.localize(datetime(j.year, j.month, j.day, timing1[0][0], timing1[0][1], timing1[0][2])))
         date_start1 = find_nearest_weekday(date(i[-2][0], i[-2][1], i[-2][2]), day1)
         event1 = Event()
         event1.add('uid', 'event'+str(event_count))
@@ -206,6 +230,7 @@ for i in updated_info:
         event1.add('dtstart', datetime(date_start1.year, date_start1.month, date_start1.day, timing1[0][0], timing1[0][1], timing1[0][2],tzinfo=tz))
         event1.add('dtend', datetime(date_start1.year, date_start1.month, date_start1.day, timing1[1][0], timing1[1][1], timing1[1][2],tzinfo=tz))
         event1.add('rrule', f"FREQ=WEEKLY;UNTIL={until.strftime("%Y%m%dT%H%M%SZ")};BYDAY={day1}")
+        event1.add('exdate', exdates)
         event1['location'] = vText(i[2])
         event1['summary'] = vText(i[0])
         event_count+=1
@@ -217,6 +242,9 @@ for i in updated_info:
 
         day0 = bydays[:2]
         timing0 = slot_timings[i[1]][0]
+        exdates = []
+        for j in updated_hols:
+            exdates.append(tz.localize(datetime(j.year, j.month, j.day, timing0[0][0], timing0[0][1], timing0[0][2])))
         date_start0 = find_nearest_weekday(date(i[-2][0], i[-2][1], i[-2][2]), day0)
         # until time is 23:59 coz keeping different until for different days (day0, day1, ...) is cumbersome
         # would require to find weekday in negative direction
@@ -228,6 +256,7 @@ for i in updated_info:
         event0.add('dtstart', datetime(date_start0.year, date_start0.month, date_start0.day, timing0[0][0], timing0[0][1], timing0[0][2],tzinfo=tz))
         event0.add('dtend', datetime(date_start0.year, date_start0.month, date_start0.day, timing0[1][0], timing0[1][1], timing0[1][2],tzinfo=tz))
         event0.add('rrule', f"FREQ=WEEKLY;UNTIL={until.strftime("%Y%m%dT%H%M%SZ")};BYDAY={day0}")
+        event0.add('exdate', exdates)
         event0['location'] = vText(i[2])
         event0['summary'] = vText(i[0])
         event_count+=1
@@ -236,6 +265,9 @@ for i in updated_info:
 
         day1 = bydays[3:5]
         timing1 = slot_timings[i[1]][1]
+        exdates = []
+        for j in updated_hols:
+            exdates.append(tz.localize(datetime(j.year, j.month, j.day, timing1[0][0], timing1[0][1], timing1[0][2])))
         date_start1 = find_nearest_weekday(date(i[-2][0], i[-2][1], i[-2][2]), day1)
 
         event1 = Event()
@@ -244,6 +276,7 @@ for i in updated_info:
         event1.add('dtstart', datetime(date_start1.year, date_start1.month, date_start1.day, timing1[0][0], timing1[0][1], timing1[0][2],tzinfo=tz))
         event1.add('dtend', datetime(date_start1.year, date_start1.month, date_start1.day, timing1[1][0], timing1[1][1], timing1[1][2],tzinfo=tz))
         event1.add('rrule', f"FREQ=WEEKLY;UNTIL={until.strftime("%Y%m%dT%H%M%SZ")};BYDAY={day1}")
+        event1.add('exdate', exdates)
         event1['location'] = vText(i[2])
         event1['summary'] = vText(i[0])
         event_count+=1
@@ -252,6 +285,9 @@ for i in updated_info:
 
         day2 = bydays[6:]
         timing2 = slot_timings[i[1]][2]
+        exdates = []
+        for j in updated_hols:
+            exdates.append(tz.localize(datetime(j.year, j.month, j.day, timing2[0][0], timing2[0][1], timing2[0][2])))
         date_start2 = find_nearest_weekday(date(i[-2][0], i[-2][1], i[-2][2]), day2)
 
         event2 = Event()
@@ -260,6 +296,7 @@ for i in updated_info:
         event2.add('dtstart', datetime(date_start2.year, date_start2.month, date_start2.day, timing2[0][0], timing2[0][1], timing2[0][2],tzinfo=tz))
         event2.add('dtend', datetime(date_start2.year, date_start2.month, date_start2.day, timing2[1][0], timing2[1][1], timing2[1][2],tzinfo=tz))
         event2.add('rrule', f"FREQ=WEEKLY;UNTIL={until.strftime("%Y%m%dT%H%M%SZ")};BYDAY={day2}")
+        event2.add('exdate', exdates)
         event2['location'] = vText(i[2])
         event2['summary'] = vText(i[0])
         event_count+=1
@@ -267,6 +304,6 @@ for i in updated_info:
         cal.add_component(event2)
 
 print('\n\n\n')
-print(cal.to_ical().decode('utf-8'))
+# print(cal.to_ical().decode('utf-8'))
 with open('cal.ics', 'wb') as f:
     f.write(cal.to_ical())

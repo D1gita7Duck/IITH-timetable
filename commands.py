@@ -47,6 +47,10 @@ def days_between(start : date, end : date, inclusive : bool = True):
         start = start.date()               # make a date from a datetime
     if isinstance(end, datetime):
         end = end.date()                   # make a date from a datetime
+    if isinstance(start, str):
+        start = date(int(start.split('/')[2]), int(start.split('/')[1]), int(start.split('/')[0]))
+    if isinstance(end, str):
+        end = date(int(end.split('/')[2]), int(end.split('/')[1]), int(end.split('/')[0]))
     if inclusive:
         end += timedelta(days=1)  # correct for inclusivity
     return (end-start).days
@@ -149,7 +153,7 @@ def upload_tt():
     confirm_win.attributes('-alpha', 0)
     confirm_win.update_idletasks()
 
-    confirm_win_width=400
+    confirm_win_width=500
     confirm_win_height=500
     screen_width=2200
     screen_height=1200
@@ -159,8 +163,8 @@ def upload_tt():
 
     ctk.CTkLabel(master=confirm_win, text="Confirm Segment Dates", font=("Helvetica", 22)).pack(side='top', pady=(30,10), fill='x')
 
-    frame = ctk.CTkScrollableFrame(master=confirm_win, width=300, height=300, border_color='white', border_width=0.5)
-    frame.pack(padx=(10,10), pady=(30, 10), fill = 'y')
+    frame = ctk.CTkScrollableFrame(master=confirm_win, width=450, height=300, border_color='white', border_width=0.5)
+    frame.pack(padx=(10,10), pady=(30, 10), fill = 'both')
     frame.grid_columnconfigure((0,1,2), minsize = 50)
     frame.grid_rowconfigure((0,1,2,3,4,5,6), minsize=50)
 
@@ -169,7 +173,7 @@ def upload_tt():
 
     for seg, dates, row in zip(tb.d_dates.keys(), tb.d_dates.values(), range(1,8)):
         ctk.CTkLabel(master=frame, text=seg).grid(row=row, column=0, padx=(10,10), pady=(0,10))
-        ctk.CTkLabel(master=frame, text=dates[0]).grid(row=row, column=1, padx=(10,10), pady=(0,10))
+        ctk.CTkLabel(master=frame, text=dates[0]).grid(row=row, column=1, padx=(0,10), pady=(0,10))
         ctk.CTkLabel(master=frame, text=dates[1]).grid(row=row, column=2, padx=(10,10), pady=(0,10))
     
     ctk.CTkLabel(master=frame, text="Holidays").grid(row=8, column=1, padx=(10,10), pady=(10,10))
@@ -261,7 +265,7 @@ def edit_holidays(values = None):
     y_coordinate = int((screen_height/2) - (edit_hol_win_height/2))
     edit_hol_win.geometry("{}x{}+{}+{}".format(edit_hol_win_width, edit_hol_win_height, x_coordinate, y_coordinate))
 
-    entry_frame = myentry.HoldidayEntry(master=edit_hol_win, push_entries=db.commit_holiday)
+    entry_frame = myentry.HoldidayEntry(master=edit_hol_win, push_entries=db.commit_holiday, delete_btn_cmd=db.delete_holiday)
     opt_cmd()
     entry_frame.pack(padx=(10,10), pady=(30,30))
 

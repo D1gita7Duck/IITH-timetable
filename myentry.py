@@ -550,6 +550,10 @@ class HoldidayEntry(ctk.CTkFrame):
 
     def on_delete_click(self):
         box_value = self.option_menu.get()
+
+        if self._delete_btn_cmd is not None:
+            self._delete_btn_cmd(self.entries)  
+        
         if len(self._option_menu_values) == 1:
             self.reset_option_menu()
         else:
@@ -559,10 +563,7 @@ class HoldidayEntry(ctk.CTkFrame):
             self.set_entries_to(self._option_menu_values[index])
             self._option_menu_values.remove(box_value)
             self.option_menu.configure(values = self._option_menu_values)
-            print(self._values_entries_dict.pop(box_value, "Trying to delete new course"))
-            
-        if self._delete_btn_cmd is not None:
-            self._delete_btn_cmd(self.entries)  
+            print(self._values_entries_dict.pop(box_value, "Trying to delete holiday"))            
 
     def clear_entries(self):
         self.hol_name_var.set("Holiday")

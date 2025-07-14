@@ -203,6 +203,11 @@ def delete_course(t: tuple):
     cur.execute("""DELETE FROM courses WHERE c_title = ?""", (c_title,))
     cur.execute("""DELETE FROM attendance WHERE c_title = ?""", (c_title,))
 
+def delete_holiday(t):
+    print("******* db.delete_holiday CALLELEDD**")
+    name = t[0].get()
+    cur.execute("""DELETE FROM holidays WHERE name = ?""", (name,))
+
 def delete_all_tables():
     cur.execute("""DROP TABLE segments""")
     cur.execute("""DROP TABLE courses""")
