@@ -22,6 +22,10 @@ def initialize_db():
     con = sqlite3.connect(database="database.db", autocommit=True)
     cur = con.cursor()
 
+def close_connection():
+    con.close()
+    print("!!! Connection to db closed !!!")
+
 def create_segments_table():
     res = cur.execute(""" SELECT name FROM sqlite_master WHERE type = 'table' AND 
                       name = 'segments' """)
@@ -159,11 +163,11 @@ def commit_holiday(name : str, dates : list[str] | str, n_days : int = 1):
 
 def commit_no_days(slot : str, no_days : int):
     cur.execute("""UPDATE attendance SET no_days = ? WHERE slot = ?""", (no_days, slot))
-    print(get_att_info_from_slot(slot))
+    # print(get_att_info_from_slot(slot))
 
 def commit_req_att_per(slot : str, p : float):
     cur.execute("""UPDATE attendance SET req_att_per = ? WHERE slot = ?""", (p, slot))
-    print(get_att_info_from_slot(slot))
+    # print(get_att_info_from_slot(slot))
 
 def get_holiday_info_from_name(name : str):
     return cur.execute("""SELECT * FROM holidays WHERE name = ?""", (name,)).fetchall()
@@ -194,17 +198,17 @@ def commit_theme(t : str):
         cur.execute("""INSERT INTO theme VALUES (?)""", (t,))
         return
     cur.execute("""UPDATE theme SET theme_name = ?""", (t,))
-    print(get_theme())
+    print("Theme:",get_theme())
 
 def delete_course(t: tuple):
-    print("******* db.delete_course CALLELEDD**")
+    print("******* db.delete_course CALLED**")
     x = [i.get() for i in t]
     c_title = x[0]
     cur.execute("""DELETE FROM courses WHERE c_title = ?""", (c_title,))
     cur.execute("""DELETE FROM attendance WHERE c_title = ?""", (c_title,))
 
 def delete_holiday(t):
-    print("******* db.delete_holiday CALLELEDD**")
+    print("******* db.delete_holiday CALLED**")
     name = t[0].get()
     cur.execute("""DELETE FROM holidays WHERE name = ?""", (name,))
 
@@ -213,3 +217,4 @@ def delete_all_tables():
     cur.execute("""DROP TABLE courses""")
     cur.execute("""DROP TABLE holidays""")
     cur.execute("""DROP TABLE attendance""")
+    close_connection()

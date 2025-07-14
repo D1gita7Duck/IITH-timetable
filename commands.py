@@ -4,6 +4,7 @@ import os
 import db
 import myentry
 import read_pdf
+import create_ical
 from datetime import date, timedelta, datetime
 from webbrowser import open as web_open
 
@@ -86,12 +87,12 @@ def intervening_weekdays(start, end, inclusive=True, weekdays=[0, 1, 2, 3, 4]):
                for ref_plus in
                (ref + timedelta(days=weekday) for weekday in weekdays))
 
-def show_warning(msg : str):
+def show_warning(msg : str, logo : str = "warning", option : str = "Retry"):
     warning_window = CTkMessagebox.CTkMessagebox(
                         title="Warning!",
                         message=msg,
-                        icon="warning",
-                        option_1="Retry",
+                        icon=logo,
+                        option_1=option,
                         sound=True,
                         cancel_button='cross',
                     )
@@ -118,7 +119,12 @@ def confirmation_win(msg : str, y_cmd = None, n_cmd = None, restart = False):
     
 
 def export_calendar_file():
-    pass
+    try:
+        cal = create_ical.MyCalendar()
+    except Exception as e:
+        show_warning(f"Some error was encountered on attempting to create calendar file. {type(e).__name__}: {e}")
+    else:
+        show_warning("Calendar file has been successfully created.\nCheck terminal for file path", "info", "OK")
 
 def open_source_code():
     web_open("https://github.com/D1gita7Duck/IITH-timetable")
@@ -190,9 +196,8 @@ def upload_tt():
 def edit_courses():
 
     def write_values_from_db(c_title):
-        print("jere", c_title)
         data = db.get_course_info(c_title)
-        print(data)
+        # print(data)
         if len(data) == 0:
             print("yerror, but how?")
             return
@@ -355,7 +360,7 @@ def change_timetable_to_date(date : tuple[int], all_slots : tuple[tuple[ctk.CTkB
     # date is converted to YY/MM/DD
     date = str(date[0]%100) + '/' + int_2_str(date[1]) + '/' + int_2_str(date[2])
     seg_info = db.get_all_segments_info()
-    print(seg_info)
+    # print(seg_info)
     seg = 1
     for i in seg_info:
         if i[0] == 'Sem_Break':
@@ -363,7 +368,7 @@ def change_timetable_to_date(date : tuple[int], all_slots : tuple[tuple[ctk.CTkB
         d = i[2]
         d = d[6:] + '/' + d[3:5] + '/' + d[0:2]
         if date > d:
-            print(date, d)
+            # print(date, d)
             seg += 1
     # print(seg)
     courses = db.get_timetable_courses(seg)

@@ -167,7 +167,7 @@ class CourseEntry(ctk.CTkFrame):
         # print(args)
         # print(item,'bla', limit)
         value = item.get()
-        print(value, '\n\n')
+        # print(value, '\n\n')
         if (len(value) > limit):
             item.set(value[:limit])
     
@@ -210,7 +210,7 @@ class CourseEntry(ctk.CTkFrame):
         USE set_entries_to_given_values instead.
         """
         self.combobox.set(box_value)
-        print(f'$${self._values_entries_dict}$$')
+        # print(f'$${self._values_entries_dict}$$')
         for i in range(7):
             self._placeholders[i].set(self._values_entries_dict[box_value][i])
         self._entry_var = box_value
@@ -233,7 +233,7 @@ class CourseEntry(ctk.CTkFrame):
         self.clear_entries()
 
     def on_combobox_click(self, box_value):
-        print(box_value)
+        # print(box_value)
         if self._combobox_command is not None:
             self._combobox_command(box_value)
             return
@@ -590,7 +590,7 @@ class HoldidayEntry(ctk.CTkFrame):
         self.option_menu.configure(values = self._option_menu_values)
         self.option_menu.set(key)
         self._values_entries_dict.update({key : value})
-        print(self._values_entries_dict)
+        # print(self._values_entries_dict)
         
         if self._push_entries is not None:
             self._push_entries(self.hol_name_var.get(), self.date_entry.get_str())

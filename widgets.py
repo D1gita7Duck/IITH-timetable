@@ -585,7 +585,7 @@ class AttendanceBoard(ctk.CTkFrame):
             cb.configure(state='disabled')
     
     def show_defined_att_frame(self, *args):
-        print(args)
+        # print(args)
         self.att_slider.configure(state='normal')
         self.add_btn.configure(state='normal')
         self.sub_btn.configure(state='normal')
