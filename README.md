@@ -132,6 +132,9 @@ If you want to create a new theme, I highly recommend using [ctk_theme_builder](
 2. **Run the application:**
 Double click on `IITH_Timetable.exe` or use the method specified in the [Issues section](#issues).
 
+3. **Access via Windows Start Menu** *(optional)*:
+If you want to access the app from the Windows Start Menu (pressing the Windows key), create a shortcut of the `.exe` and move it to the following location
+`C:\ProgramData\Microsoft\Windows\Start Menu\Programs`
 
 ### Notes
 
