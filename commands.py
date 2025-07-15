@@ -221,7 +221,8 @@ def edit_courses():
 
     courses = db.get_course_titles()
     if len(courses) == 0:
-        courses = None
+        # bug fix: on fresh install, courses cannot be created as previously None was being passed.
+        courses = ["Enter a Value"]
     else:
         courses = [x[0] for x in courses]
 

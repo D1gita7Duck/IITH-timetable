@@ -115,11 +115,15 @@ def commit_courses_info(key, value):
     cur.execute("""UPDATE courses SET
                 c_code = ?, c_venue = ?, s_start = ?, s_end = ?, slot_text = ?, slot = ? 
                 WHERE c_title = ?""", (value[1], value[2], value[3], value[4], value[5], value[6], key))
+    cur.execute("""UPDATE attendance SET
+                s_start = ?, s_end = ?, slot = ?
+                WHERE c_title = ?""", (value[3], value[4], value[6], key))
     if cur.rowcount == 0:
         cur.execute("""INSERT INTO courses VALUES (?, ?, ?, ?, ?, ?, ?)""", (key, value[1], value[2], value[3], value[4], value[5], value[6]))
-        cur.execute("""INSERT INTO attendance (c_title, s_start, s_end, slot)""", (key, value[3], value[4], value[6]))
+        cur.execute("""INSERT INTO attendance (c_title, s_start, s_end, slot) VALUES(?, ?, ?, ?)""", (key, value[3], value[4], value[6]))
     print("inserted course successfully")
     print(get_all_courses_info())
+    print(get_all_att_info())
 
 def get_course_titles():
     return cur.execute("""SELECT c_title from courses""").fetchall()
