@@ -110,7 +110,7 @@ Efficiently manage your course schedule at IITH with a smart timetable app that 
     <img src="ss/theme_printable.png" class="image">
     - **Sweetkind**
     <img src="ss/theme_sweetkind.png" class="image">
-- Adjust transpareny via Options>Adjust Transparency
+- Adjust transparency via Options>Adjust Transparency
 
 If you want to create a new theme, I highly recommend using [ctk_theme_builder](https://github.com/avalon60/ctk_theme_builder). Create a theme and post it on the [Discussions Forum](https://github.com/D1gita7Duck/IITH-timetable/discussions) with the *enhancement* label. I will add it if and when possible.
 
