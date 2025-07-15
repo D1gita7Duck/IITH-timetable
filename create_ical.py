@@ -89,9 +89,9 @@ To add colours in Google Calendar have to use OAuth2 credentials and use Google 
 class MyCalendar(str):
     """
     Creates an icalendar.Calendar object (self.cal) and adds events to it.
-    There are three events for triweekly, two events for biweekly, and one event for a weekly courses.
-    Calendar is written to .ics file saved in ./cal.ics
-    :returns: A str of the calendar data
+    There are three events for triweekly, two events for biweekly, and one event for weekly courses.
+    Calendar is written to .ics file saved in ./cal.ics \n
+    Returns: A str of the calendar data
     """
     def __init__(self):
         super().__init__()

@@ -2,9 +2,18 @@ import customtkinter as ctk
 from PIL import Image
 import CTkMessagebox
 from CTkDateEntry.dateentry import DateTextEntry
+from os import path
+import sys
 
-course_add_img = ctk.CTkImage(Image.open("icons\\course_add.png"), size = (40,40))
-course_delete_img = ctk.CTkImage(Image.open("icons\\course_delete.png"), size = (40,40))
+def resource_path(relative_path):
+    """
+    Get absolute path to resource, works for development and pyinstaller
+    """
+    base_path = getattr(sys, '_MEIPASS', path.abspath("."))
+    return path.join(base_path, relative_path)
+
+course_add_img = ctk.CTkImage(Image.open(resource_path("icons/course_add.png")), size = (40,40))
+course_delete_img = ctk.CTkImage(Image.open(resource_path("icons/course_delete.png")), size = (40,40))
 
 def show_warning(msg : str):
     warning_window = CTkMessagebox.CTkMessagebox(

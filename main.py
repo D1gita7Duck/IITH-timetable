@@ -8,4 +8,5 @@ widgets.commands.db.create_attendance_table()
 widgets.commands.db.create_theme_table()
 
 app = widgets.App()
+app.iconbitmap(widgets.resource_path("icons/app_icon.ico"))
 app.mainloop()

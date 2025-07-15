@@ -4,6 +4,15 @@ import CTkDataVisualizingWidgets.CTkDataVisualizingWidgets as dw
 import time
 import commands
 from PIL import Image
+from os import path
+import sys
+
+def resource_path(relative_path):
+    """
+    Get absolute path to resource, works for development and pyinstaller
+    """
+    base_path = getattr(sys, '_MEIPASS', path.abspath("."))
+    return path.join(base_path, relative_path)
 
 class Timetable(ctk.CTkFrame):
     A_slot=tuple()
@@ -450,8 +459,8 @@ class DashBoard(ctk.CTkFrame):
         self.d_course_frame.grid(row=4, column=0, columnspan=15, padx=(10,10), pady=(10,20))
 
 class AttendanceBoard(ctk.CTkFrame):
-    add_img = ctk.CTkImage(Image.open("icons\\add.png"), size = (30,30))
-    sub_img = ctk.CTkImage(Image.open("icons\\subtract.png"), size = (30,30))
+    add_img = ctk.CTkImage(Image.open(resource_path("icons/add.png")), size = (30,30))
+    sub_img = ctk.CTkImage(Image.open(resource_path("icons/subtract.png")), size = (30,30))
 
     def __init__(self, master, width=1075, height=300, **kwargs):
         super().__init__(master, width, height, **kwargs)
@@ -618,7 +627,7 @@ class App(ctk.CTk):
             ctk.set_appearance_mode('light')
         else:
             ctk.set_appearance_mode('dark')
-        ctk.set_default_color_theme("themes//"+self.theme+".json")
+        ctk.set_default_color_theme(resource_path("themes/"+self.theme+".json"))
         super().__init__()
         self.geometry(f'{str(self.winfo_screenwidth())}x{str(self.winfo_screenheight())}')
         self.title("Timetable") # window title
