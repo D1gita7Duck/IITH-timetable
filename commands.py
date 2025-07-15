@@ -439,6 +439,18 @@ def modify_slot(slot, output_text, all_slots):
 def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_ud_dash, show_d_dash, dashboard, show_ud_att, show_d_att, att_frame):
     global highlighted_btns
 
+    if highlighted_btns is not None:
+        for x in highlighted_btns:
+            x.configure(border_color = "#00bfc2", border_width = 0.5)
+
+    if len(btns) == 5:
+        btn.configure(border_color = 'orange', border_width = 1)
+        highlighted_btns = (btn,)
+    else:
+        for btn1 in btns:
+            btn1.configure(border_color = 'orange', border_width = 1)
+        highlighted_btns = btns
+        
     btn_text : str = btn.cget("text")
     s_text = btn_text.split('\n')[0]
     s = btn_text.split('\t')[-1]
@@ -474,18 +486,6 @@ def show_course_details(btn : ctk.CTkButton, btns : tuple[ctk.CTkButton], show_u
         can_bunk = ((1-req_att_per)*no_w_days).__floor__()
         slot_w_days = slot_mapping[s_key]
         show_d_att(att_frame, no_w_days, can_bunk, slot_w_days)
-    
-    if highlighted_btns is not None:
-        for x in highlighted_btns:
-            x.configure(border_color = "#00bfc2", border_width = 0.5)
-
-    if len(btns) == 5:
-        btn.configure(border_color = 'orange', border_width = 1)
-        highlighted_btns = (btn,)
-    else:
-        for btn1 in btns:
-            btn1.configure(border_color = 'orange', border_width = 1)
-        highlighted_btns = btns
 
 def change_att_of_highlighted_course(att_per : float, show_d_att, att_frame):
     slot = highlighted_btns[0].cget('text').split('\t')[-1]
