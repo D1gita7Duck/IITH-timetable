@@ -183,8 +183,8 @@ class MyCalendar(str):
         vtz['tzid'] = self.tz
         s_tz = TimezoneStandard()
         s_tz['dtstart'] = datetime.now(self.tz).astimezone(pytz.utc).strftime("%Y%m%dT%H%M%SZ")
-        s_tz['tzoffsetto'] = '+0553'
-        s_tz["tzoffsetfrom"] = '+0553'
+        s_tz['tzoffsetto'] = '+0530'
+        s_tz["tzoffsetfrom"] = '+0530'
         vtz.add_component(s_tz)
         self.cal.add_component(vtz)
 
